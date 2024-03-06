@@ -7,7 +7,6 @@ use features::cards::*;
 fn main() {
     App::default()
         .add_plugins(DefaultPlugins)
-        .add_plugins(CardsPlugin)
         .add_systems(Startup, setup)
         .run();
 }
@@ -32,11 +31,11 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             Transform::from_xyz(400., 0., 0.),
         ),
     ] {
-        let texture_path = Card::texture_path(color, variant);
+        let texture_path = CardBundle::texture_path(color, variant);
 
         let texture = asset_server.load(texture_path);
         commands.spawn((
-            Card::default(),
+            CardBundle { color, variant },
             SpriteBundle {
                 texture,
                 transform,

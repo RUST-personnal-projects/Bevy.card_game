@@ -1,11 +1,7 @@
-mod cards_plugin;
-
 use bevy::prelude::*;
-pub use cards_plugin::CardsPlugin;
 
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Component)]
 pub enum CardColor {
-    #[default]
     Yellow,
     Red,
     Blue,
@@ -25,8 +21,7 @@ impl From<CardColor> for &'static str {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Reflect)]
-#[reflect(PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CardValue {
     One,
     Two,
@@ -55,14 +50,13 @@ impl From<CardValue> for &'static str {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Component)]
 pub enum CardVariant {
     Number(CardValue),
     Invert,
     Block,
     PlusTwo,
     PlusFour,
-    #[default]
     Wild,
 }
 
@@ -79,26 +73,17 @@ impl From<CardVariant> for &'static str {
     }
 }
 
-#[derive(Component, Debug, Default, Clone)]
-pub struct Card {
+#[derive(Component, Debug, Clone)]
+pub struct CardBundle {
     pub color: CardColor,
     pub variant: CardVariant,
 }
 
-impl Card {
+impl CardBundle {
     pub fn texture_path(color: CardColor, variant: CardVariant) -> String {
         let color_str: &str = color.into();
         let variant_str: &str = variant.into();
-        match variant {
-            CardVariant::Number(_)
-            | CardVariant::Invert
-            | CardVariant::Block
-            | CardVariant::PlusTwo => {
-                format!("cards/{}/{}_{}.png", color_str, variant_str, color_str)
-            }
-            CardVariant::PlusFour | CardVariant::Wild => {
-                format!("cards/{}/{}.png", color_str, variant_str)
-            }
-        }
+
+        format!("cards/{}/{}_{}.png", color_str, variant_str, color_str)
     }
 }
