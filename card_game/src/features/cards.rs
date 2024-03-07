@@ -9,50 +9,21 @@ pub enum CardColor {
     Wild,
 }
 
-impl From<CardColor> for &'static str {
-    fn from(card_color: CardColor) -> &'static str {
+impl From<CardColor> for String {
+    fn from(card_color: CardColor) -> String {
         match card_color {
-            CardColor::Yellow => "yellow",
-            CardColor::Red => "red",
-            CardColor::Blue => "blue",
-            CardColor::Green => "green",
-            CardColor::Wild => "wild",
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum CardValue {
-    One,
-    Two,
-    Three,
-    Four,
-    Five,
-    Six,
-    Seven,
-    Eight,
-    Nine,
-}
-
-impl From<CardValue> for &'static str {
-    fn from(card_value: CardValue) -> &'static str {
-        match card_value {
-            CardValue::One => "1",
-            CardValue::Two => "2",
-            CardValue::Three => "3",
-            CardValue::Four => "4",
-            CardValue::Five => "5",
-            CardValue::Six => "6",
-            CardValue::Seven => "7",
-            CardValue::Eight => "8",
-            CardValue::Nine => "9",
+            CardColor::Yellow => "yellow".to_string(),
+            CardColor::Red => "red".to_string(),
+            CardColor::Blue => "blue".to_string(),
+            CardColor::Green => "green".to_string(),
+            CardColor::Wild => "wild".to_string(),
         }
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Component)]
 pub enum CardVariant {
-    Number(CardValue),
+    Number(u8),
     Invert,
     Block,
     PlusTwo,
@@ -60,20 +31,20 @@ pub enum CardVariant {
     Wild,
 }
 
-impl From<CardVariant> for &'static str {
-    fn from(card_variant: CardVariant) -> &'static str {
+impl From<CardVariant> for String {
+    fn from(card_variant: CardVariant) -> String {
         match card_variant {
-            CardVariant::Number(number) => number.into(),
-            CardVariant::Invert => "inverse",
-            CardVariant::Block => "block",
-            CardVariant::PlusTwo => "2plus",
-            CardVariant::PlusFour => "4plus",
-            CardVariant::Wild => "wild_card",
+            CardVariant::Number(number) => number.to_string(),
+            CardVariant::Invert => "inverse".to_string(),
+            CardVariant::Block => "block".to_string(),
+            CardVariant::PlusTwo => "2plus".to_string(),
+            CardVariant::PlusFour => "4plus".to_string(),
+            CardVariant::Wild => "wild_card".to_string(),
         }
     }
 }
 
-#[derive(Component, Debug, Clone)]
+#[derive(Bundle, Debug, Clone)]
 pub struct CardBundle {
     pub color: CardColor,
     pub variant: CardVariant,
@@ -81,8 +52,8 @@ pub struct CardBundle {
 
 impl CardBundle {
     pub fn texture_path(color: CardColor, variant: CardVariant) -> String {
-        let color_str: &str = color.into();
-        let variant_str: &str = variant.into();
+        let color_str: String = color.into();
+        let variant_str: String = variant.into();
 
         format!("cards/{}/{}_{}.png", color_str, variant_str, color_str)
     }

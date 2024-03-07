@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 mod features;
 
-use features::cards::*;
+use features::{cards::*, deck::Deck};
 
 fn main() {
     App::default()
@@ -17,7 +17,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     for (color, variant, transform) in [
         (
             CardColor::Blue,
-            CardVariant::Number(CardValue::Nine),
+            CardVariant::Number(9),
             Transform::from_xyz(-400., 0., 0.),
         ),
         (
@@ -43,4 +43,5 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             },
         ));
     }
+    commands.spawn(Deck::default());
 }
