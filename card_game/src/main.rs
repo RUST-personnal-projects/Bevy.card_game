@@ -2,11 +2,15 @@ use bevy::prelude::*;
 
 mod features;
 
-use features::{cards::*, deck::Deck};
+use features::{
+    cards::*,
+    deck::{deck_plugin::DeckPlugin, Deck},
+};
 
 fn main() {
     App::default()
         .add_plugins(DefaultPlugins)
+        .add_plugins(DeckPlugin)
         .add_systems(Startup, setup)
         .run();
 }

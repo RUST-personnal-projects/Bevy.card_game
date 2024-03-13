@@ -1,18 +1,7 @@
-use bevy::prelude::*;
 use rand::seq::SliceRandom;
 
+use super::CardInfo;
 use crate::{CardColor, CardVariant};
-
-#[derive(Component, Debug, Clone, PartialEq)]
-pub struct Deck(Vec<(CardColor, CardVariant)>);
-
-type CardInfo = (CardColor, CardVariant);
-
-impl Default for Deck {
-    fn default() -> Self {
-        Self(DeckGenerator::default().generate_deck())
-    }
-}
 
 pub struct DeckGenerator {
     number0: u8,
