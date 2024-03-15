@@ -1,15 +1,19 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, window::WindowResolution};
 
 mod features;
 
-use features::{
-    cards::*,
-    deck::{deck_plugin::DeckPlugin, Deck},
-};
+use features::{cards::*, deck::deck_plugin::DeckPlugin};
 
 fn main() {
     App::default()
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(Window {
+                resolution: WindowResolution::new(1500., 900.),
+                position: WindowPosition::Centered(MonitorSelection::Index(0)),
+                ..default()
+            }),
+            ..default()
+        }))
         .add_plugins(DeckPlugin)
         .add_systems(Startup, setup)
         .run();
@@ -22,17 +26,22 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         (
             CardColor::Blue,
             CardVariant::Number(9),
-            Transform::from_xyz(-400., 0., 0.),
+            Transform::from_xyz(-300., 0., 0.),
         ),
         (
             CardColor::Wild,
             CardVariant::Wild,
-            Transform::from_xyz(0., 0., 0.),
+            Transform::from_xyz(-100., 0., 0.),
+        ),
+        (
+            CardColor::Wild,
+            CardVariant::PlusFour,
+            Transform::from_xyz(100., 0., 0.),
         ),
         (
             CardColor::Yellow,
             CardVariant::Invert,
-            Transform::from_xyz(400., 0., 0.),
+            Transform::from_xyz(300., 0., 0.),
         ),
     ] {
         let texture_path = CardBundle::texture_path(color, variant);
@@ -47,5 +56,4 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             },
         ));
     }
-    commands.spawn(Deck::default());
 }

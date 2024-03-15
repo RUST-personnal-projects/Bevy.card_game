@@ -38,7 +38,7 @@ impl From<CardVariant> for String {
             CardVariant::Invert => "inverse".to_string(),
             CardVariant::Block => "block".to_string(),
             CardVariant::PlusTwo => "2plus".to_string(),
-            CardVariant::PlusFour => "4plus".to_string(),
+            CardVariant::PlusFour => "4_plus".to_string(),
             CardVariant::Wild => "wild_card".to_string(),
         }
     }
