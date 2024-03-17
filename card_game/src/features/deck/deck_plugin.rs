@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::CardBundle;
+use crate::{utils::hover::Hoverable, CardBundle};
 
 use super::Deck;
 
@@ -56,6 +56,7 @@ fn spawn_deck_sprite(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..default()
         },
         DeckMarker,
+        Hoverable,
     ));
 }
 

@@ -4,6 +4,7 @@ mod features;
 mod utils;
 
 use features::{cards::*, deck::deck_plugin::DeckPlugin};
+use utils::hover::HoverPlugin;
 use utils::mouse::MousePlugin;
 
 fn main() {
@@ -17,6 +18,7 @@ fn main() {
         }))
         .add_plugins(MousePlugin)
         .add_plugins(DeckPlugin)
+        .add_plugins(HoverPlugin)
         .add_systems(Startup, setup)
         .run();
 }
