@@ -1,8 +1,10 @@
 use bevy::{prelude::*, window::WindowResolution};
 
 mod features;
+mod utils;
 
 use features::{cards::*, deck::deck_plugin::DeckPlugin};
+use utils::mouse::MousePlugin;
 
 fn main() {
     App::default()
@@ -14,6 +16,7 @@ fn main() {
             }),
             ..default()
         }))
+        .add_plugins(MousePlugin)
         .add_plugins(DeckPlugin)
         .add_systems(Startup, setup)
         .run();
