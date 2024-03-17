@@ -6,9 +6,9 @@ debug:
     cargo watch -x "run --features bevy/dynamic_linking"
 
 release:
-    cargo build --profile release
+    cargo run --profile release
 
 distribution:
-    cargo build --profile distribution \
+    cargo run --profile distribution \
 #     -F tracing/release_max_level_off -F log/release_max_level_off
 # uncomment after adding log crates
