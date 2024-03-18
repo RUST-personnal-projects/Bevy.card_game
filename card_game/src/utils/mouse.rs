@@ -1,7 +1,7 @@
-use bevy::prelude::*;
+use bevy::{input::mouse::MouseMotion, prelude::*};
 
 #[derive(Resource, Default)]
-struct MouseCoordinates(Vec2);
+pub struct MouseCoordinates(pub Vec2);
 
 #[derive(Component)]
 struct MouseCoordinatesMarker;
@@ -43,17 +43,20 @@ fn update_coordinates(
     mut mouse_coordinates: ResMut<MouseCoordinates>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
     window_query: Query<&Window>,
+    mut mouse_event: EventReader<MouseMotion>,
 ) {
-    let (camera, camera_transform) = camera_query.single();
+    for _ in mouse_event.read() {
+        let (camera, camera_transform) = camera_query.single();
 
-    let window = window_query.single();
+        let window = window_query.single();
 
-    if let Some(coordinates) = window
-        .cursor_position()
-        .and_then(|cursor| camera.viewport_to_world_2d(camera_transform, cursor))
-        .map(|coordinates| coordinates.trunc())
-    {
-        mouse_coordinates.0 = coordinates;
+        if let Some(coordinates) = window
+            .cursor_position()
+            .and_then(|cursor| camera.viewport_to_world_2d(camera_transform, cursor))
+            .map(|coordinates| coordinates.trunc())
+        {
+            mouse_coordinates.0 = coordinates;
+        }
     }
 }
 
