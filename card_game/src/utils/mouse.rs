@@ -25,9 +25,14 @@ impl Plugin for MousePlugin {
 
 fn setup(mut commands: Commands) {
     commands.spawn((
-        Text2dBundle {
+        TextBundle {
             transform: Transform::from_xyz(-500., 400., 0.),
-            text: Text::from_section("coordinates: ", TextStyle::default()),
+            text: Text::from_section("mouse: ", TextStyle::default()),
+            style: Style {
+                top: Val::Px(5.),
+                left: Val::Px(5.),
+                ..default()
+            },
             ..default()
         },
         MouseCoordinatesMarker,
@@ -60,7 +65,7 @@ fn update_coordinates_text(
 
     *text = Text::from_section(
         format!(
-            "coordinates: \nx: {}\ny: {}",
+            "mouse: \nx: {}\ny: {}",
             mouse_coordinates.0.x, mouse_coordinates.0.y
         ),
         TextStyle::default(),
