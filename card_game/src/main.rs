@@ -1,4 +1,4 @@
-use bevy::{prelude::*, window::WindowResolution};
+use bevy::{prelude::*, window::*};
 
 mod features;
 mod utils;
@@ -10,8 +10,7 @@ fn main() {
     App::default()
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
-                resolution: WindowResolution::new(1500., 900.),
-                position: WindowPosition::Centered(MonitorSelection::Index(0)),
+                mode: WindowMode::BorderlessFullscreen,
                 ..default()
             }),
             ..default()
