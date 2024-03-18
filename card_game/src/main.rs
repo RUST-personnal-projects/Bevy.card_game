@@ -4,7 +4,7 @@ mod features;
 mod utils;
 
 use features::{cards::*, deck::deck_plugin::DeckPlugin};
-use utils::hover::HoverPlugin;
+use utils::hover::{HoverPlugin, Hoverable};
 use utils::mouse::MousePlugin;
 
 fn main() {
@@ -58,6 +58,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 transform,
                 ..default()
             },
+            Hoverable,
         ));
     }
 }
