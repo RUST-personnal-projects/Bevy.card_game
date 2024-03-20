@@ -1,11 +1,11 @@
+#![allow(clippy::type_complexity)]
 use bevy::{prelude::*, window::*};
 
 mod features;
 mod utils;
 
 use features::{cards::*, deck::deck_plugin::DeckPlugin};
-use utils::hover::{HoverPlugin, Hoverable};
-use utils::mouse::MousePlugin;
+use utils::mouse;
 
 fn main() {
     App::default()
@@ -16,9 +16,8 @@ fn main() {
             }),
             ..default()
         }))
-        .add_plugins(MousePlugin)
+        .add_plugins(mouse::MousePlugins)
         .add_plugins(DeckPlugin)
-        .add_plugins(HoverPlugin)
         .add_systems(Startup, setup)
         .run();
 }
@@ -58,7 +57,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 transform,
                 ..default()
             },
-            Hoverable,
+            mouse::MouseInteractionBundle::default(),
         ));
     }
 }

@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 
-use super::mouse::MouseCoordinates;
+use super::{click::Clicked, MouseCoordinates};
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Default)]
 pub struct Hoverable;
 
 #[derive(Component, Debug)]
@@ -10,15 +10,24 @@ pub struct Hovered;
 
 pub struct HoverPlugin;
 
-impl Plugin for HoverPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(Update, (is_hovered, hovered_gizmo));
+#[derive(Resource, Debug)]
+pub struct GizmoColor(pub Color);
+
+impl Default for GizmoColor {
+    fn default() -> Self {
+        Self(Color::GREEN)
     }
 }
 
-fn hovered_gizmo(
+impl Plugin for HoverPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Update, (is_hovered, gizmo));
+    }
+}
+
+fn gizmo(
     mut gizmos: Gizmos,
-    hoverables_query: Query<(&Handle<Image>, &Transform), With<Hovered>>,
+    hoverables_query: Query<(&Handle<Image>, &Transform), (With<Hovered>, Without<Clicked>)>,
     assets: Res<Assets<Image>>,
 ) {
     for (image, transform) in hoverables_query.iter() {
@@ -37,7 +46,10 @@ fn hovered_gizmo(
 }
 
 fn is_hovered(
-    hoverables_query: Query<(Entity, &Handle<Image>, &Transform), With<Hoverable>>,
+    hoverables_query: Query<
+        (Entity, &Handle<Image>, &Transform),
+        (With<Hoverable>, Without<Clicked>),
+    >,
     assets: Res<Assets<Image>>,
     mouse: Res<MouseCoordinates>,
     mut commands: Commands,

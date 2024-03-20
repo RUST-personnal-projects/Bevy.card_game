@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{utils::hover::Hoverable, CardBundle};
+use crate::{utils::mouse::hover::Hoverable, CardBundle};
 
 use super::Deck;
 

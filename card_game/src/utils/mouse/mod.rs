@@ -1,10 +1,32 @@
+pub mod click;
+pub mod hover;
+
 use bevy::{input::mouse::MouseMotion, prelude::*};
+
+use self::{click::Clickable, hover::Hoverable};
 
 #[derive(Resource, Default)]
 pub struct MouseCoordinates(pub Vec2);
 
 #[derive(Component)]
 struct MouseCoordinatesMarker;
+
+pub struct MousePlugins;
+
+impl PluginGroup for MousePlugins {
+    fn build(self) -> bevy::app::PluginGroupBuilder {
+        bevy::app::PluginGroupBuilder::start::<Self>()
+            .add(click::ClickPlugin)
+            .add_before::<click::ClickPlugin, hover::HoverPlugin>(hover::HoverPlugin)
+            .add(MousePlugin)
+    }
+}
+
+#[derive(Bundle, Debug, Default)]
+pub struct MouseInteractionBundle {
+    pub clickable: Clickable,
+    pub hoverable: Hoverable,
+}
 
 pub struct MousePlugin;
 
