@@ -27,6 +27,7 @@ impl Default for DeckGenerator {
     }
 }
 
+/// Add all colored variants of a numbered card a given `number` of times
 fn add_colored_card(variant: CardVariant, number: u8) -> Vec<CardInfo> {
     let mut cards = Vec::new();
     [
@@ -43,10 +44,12 @@ fn add_colored_card(variant: CardVariant, number: u8) -> Vec<CardInfo> {
     cards
 }
 
+/// Add a Wild card a given `number` of times
 fn add_wild_card(variant: CardVariant, number: u8) -> Vec<CardInfo> {
     add_card(variant, CardColor::Wild, number)
 }
 
+/// Add any card a given `number` of times
 fn add_card(variant: CardVariant, color: CardColor, number: u8) -> Vec<CardInfo> {
     let mut cards = Vec::new();
     (1..=number).for_each(|_| cards.push((color, variant)));
