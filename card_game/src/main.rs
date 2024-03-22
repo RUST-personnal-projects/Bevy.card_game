@@ -50,7 +50,6 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         let texture_path = CardBundle::texture_path(color, variant);
 
         let texture = asset_server.load(texture_path);
-        println!("{:?}", texture);
 
         commands.spawn((
             CardBundle { color, variant },
