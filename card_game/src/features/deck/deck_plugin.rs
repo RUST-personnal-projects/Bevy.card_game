@@ -12,7 +12,7 @@ struct InDeckMarker;
 #[derive(Component)]
 struct DeckMarker;
 
-const CARD_BACK_PATH: &str = "cards/card_back/card_back.png";
+pub const CARD_BACK_PATH: &str = "cards/card_back/card_back.png";
 
 impl Plugin for DeckPlugin {
     fn build(&self, app: &mut App) {
@@ -22,7 +22,6 @@ impl Plugin for DeckPlugin {
 }
 
 // Spawn one entity invisible per card in the deck
-//TODO: change this to just be a vector of card that allows drawing.
 fn fill_deck(mut commands: Commands) {
     let deck = Deck::default();
 

@@ -66,6 +66,7 @@ fn is_hovered(
 
 #[cfg(test)] // This attribute ensures this module is only compiled when running tests
 mod hover {
+    use crate::features::deck::deck_plugin::CARD_BACK_PATH;
     use crate::utils::test::asset_loading::{check_loaded, TestAssetLoadingState};
     use crate::utils::test::test_plugins::TestPlugin;
 
@@ -90,7 +91,7 @@ mod hover {
             // Access the asset server and start loading Image
             let asset_server = app.world.resource_mut::<AssetServer>();
 
-            let image: Handle<Image> = asset_server.load("cards/card_back/card_back.png");
+            let image: Handle<Image> = asset_server.load(CARD_BACK_PATH);
 
             // Add Hoverable entity that is Hovered
             let entity_id = app
@@ -137,7 +138,7 @@ mod hover {
             // Access the asset server and start loading Image
             let asset_server = app.world.resource_mut::<AssetServer>();
 
-            let image: Handle<Image> = asset_server.load("cards/card_back/card_back.png");
+            let image: Handle<Image> = asset_server.load(CARD_BACK_PATH);
 
             // Add Hoverable entity that is Hovered
             let entity_id = app
@@ -184,7 +185,7 @@ mod hover {
             // Access the asset server and start loading Image
             let asset_server = app.world.resource_mut::<AssetServer>();
 
-            let image: Handle<Image> = asset_server.load("cards/card_back/card_back.png");
+            let image: Handle<Image> = asset_server.load(CARD_BACK_PATH);
 
             // Add Hoverable entity that is Hovered
             let entity_id = app
@@ -231,7 +232,7 @@ mod hover {
             // Access the asset server and start loading Image
             let asset_server = app.world.resource_mut::<AssetServer>();
 
-            let image: Handle<Image> = asset_server.load("cards/card_back/card_back.png");
+            let image: Handle<Image> = asset_server.load(CARD_BACK_PATH);
 
             // Add Hoverable entity that is Hovered
             let entity_id = app
