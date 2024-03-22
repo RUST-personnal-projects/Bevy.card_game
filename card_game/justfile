@@ -13,5 +13,5 @@ distribution:
 #     -F tracing/release_max_level_off -F log/release_max_level_off
 # uncomment after adding log crates
 
-test target:
-    cargo watch -x "test {{target}} -- --nocapture"
+test target="-- --nocapture":
+    cargo watch -x "test {{target}}"
