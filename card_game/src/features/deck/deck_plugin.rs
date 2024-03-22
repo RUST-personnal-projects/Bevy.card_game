@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 
-use crate::{utils::mouse::hover::Hoverable, CardBundle};
+use crate::{
+    utils::mouse::{hover::Hoverable, Clickable, Hovered},
+    CardBundle,
+};
 
 use super::Deck;
 
@@ -10,6 +13,12 @@ pub struct DeckPlugin;
 struct InDeckMarker;
 
 #[derive(Component)]
+struct NodeDeckMarker;
+
+#[derive(Component)]
+struct TextDeckMarker;
+
+#[derive(Component)]
 struct DeckMarker;
 
 pub const CARD_BACK_PATH: &str = "cards/card_back/card_back.png";
@@ -17,7 +26,13 @@ pub const CARD_BACK_PATH: &str = "cards/card_back/card_back.png";
 impl Plugin for DeckPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, (fill_deck, spawn_deck_sprite))
-            .add_systems(Update, how_many);
+            .add_systems(
+                Update,
+                (
+                    how_many_in_deck.run_if(run_if_deck_hovered),
+                    hide_node.run_if(not(run_if_deck_hovered)),
+                ),
+            );
     }
 }
 
@@ -34,18 +49,32 @@ fn spawn_deck_sprite(mut commands: Commands, asset_server: Res<AssetServer>) {
     let texture = asset_server.load(CARD_BACK_PATH);
 
     // Text used to show how many cards are in the deck
-    commands.spawn((
-        Text2dBundle {
-            text: Text {
-                sections: vec![TextSection::default()],
+    commands
+        .spawn((
+            NodeBundle {
+                // style: Style {
+                //     align_self: AlignSelf::End,
+                //     ..default()
+                // },
+                background_color: BackgroundColor(Color::DARK_GRAY),
+                border_color: BorderColor(Color::BLACK),
+                visibility: Visibility::Hidden,
                 ..default()
             },
-            transform: Transform::from_xyz(-500., 300., 0.),
-            visibility: Visibility::Hidden,
-            ..default()
-        },
-        DeckMarker,
-    ));
+            NodeDeckMarker,
+        ))
+        .with_children(|builder| {
+            builder.spawn((
+                TextBundle {
+                    text: Text {
+                        sections: vec![TextSection::default()],
+                        ..default()
+                    },
+                    ..default()
+                },
+                TextDeckMarker,
+            ));
+        });
 
     // Card back supposed to represent the deck
     commands.spawn((
@@ -56,30 +85,36 @@ fn spawn_deck_sprite(mut commands: Commands, asset_server: Res<AssetServer>) {
         },
         DeckMarker,
         Hoverable,
+        Clickable,
     ));
 }
 
-fn how_many(deck_query: Query<Entity, Added<InDeckMarker>>) {
-    let len = deck_query.iter().count();
-    if len > 0 {
-        bevy::log::info!("deck size: {len}");
-    }
+fn run_if_deck_hovered(deck_hovered_query: Query<(), (With<DeckMarker>, With<Hovered>)>) -> bool {
+    deck_hovered_query.iter().count() == 1
 }
 
-//TODO create hoverable component that allows to know when hovered
-// fn how_many_hover(
-//     interactions: Query<&Interaction, With<DeckMarker>>,
-//     mut text_query: Query<(&mut Text, &mut Visibility), With<DeckMarker>>,
-// ) {
-//     let (mut text, mut visibility) = text_query.single_mut();
-//     interactions
-//         .iter()
-//         .for_each(|interaction| match interaction {
-//             Interaction::None => *visibility = Visibility::Hidden,
-//             _ => {
-//                 *visibility = Visibility::Visible;
-//                 text.sections[0].value = "aaa".to_string();
-//                 bevy::log::info!("interacting");
-//             }
-//         })
-// }
+fn how_many_in_deck(
+    mut node_query: Query<(&mut Visibility, &mut Style), With<NodeDeckMarker>>,
+    mut text_query: Query<&mut Text, With<TextDeckMarker>>,
+    window_query: Query<&Window>,
+    deck_query: Query<(), With<InDeckMarker>>,
+) {
+    let (mut visibility, mut style) = node_query.single_mut();
+    let mut text = text_query.single_mut();
+    let window = window_query.single();
+    let len = deck_query.iter().count();
+
+    if let Some(cursor) = window.cursor_position() {
+        style.left = Val::Px(cursor.x + 15.);
+        style.top = Val::Px(cursor.y);
+    }
+
+    *text = Text::from_section(format!("cards remaining: {}", len), TextStyle::default());
+    *visibility = Visibility::Visible;
+}
+
+fn hide_node(mut node_query: Query<&mut Visibility, With<NodeDeckMarker>>) {
+    let mut visibility = node_query.single_mut();
+
+    *visibility = Visibility::Hidden;
+}
