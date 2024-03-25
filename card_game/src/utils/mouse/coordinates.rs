@@ -3,8 +3,14 @@ use bevy::{input::mouse::MouseMotion, prelude::*};
 #[derive(Resource, Default)]
 pub struct MouseCoordinates(pub Vec2);
 
+#[derive(Resource, Default)]
+pub struct UIMouseCoordinates(pub Vec2);
+
 #[derive(Component)]
 struct TextCoordinatesMarker;
+
+#[derive(Component)]
+struct UITextCoordinatesMarker;
 
 pub struct CoordinatesPlugin;
 
@@ -12,50 +18,77 @@ impl Plugin for CoordinatesPlugin {
     #[cfg(not(debug_assertions))]
     fn build(&self, app: &mut App) {
         app.add_systems(Update, update_coordinates)
-            .init_resource::<MouseCoordinates>();
+            .init_resource::<MouseCoordinates>()
+            .init_resource::<UIMouseCoordinates>();
     }
 
     #[cfg(debug_assertions)]
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup)
-            .add_systems(Update, (update_coordinates, update_coordinates_text))
-            .init_resource::<MouseCoordinates>();
+            .add_systems(Update, (update_ui_coordinates, update_ui_coordinates_text))
+            .add_systems(
+                Update,
+                (update_coordinates, update_coordinates_text).after(update_ui_coordinates),
+            )
+            .init_resource::<MouseCoordinates>()
+            .init_resource::<UIMouseCoordinates>();
     }
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn((
-        TextBundle {
-            transform: Transform::from_xyz(-500., 400., 0.),
-            text: Text::from_section("mouse: ", TextStyle::default()),
+    // UI node
+    commands
+        .spawn((NodeBundle {
+            background_color: BackgroundColor(Color::DARK_GRAY),
+            border_color: BorderColor(Color::BLACK),
             style: Style {
-                top: Val::Px(5.),
-                left: Val::Px(5.),
+                flex_direction: FlexDirection::Column,
                 ..default()
             },
             ..default()
-        },
-        TextCoordinatesMarker,
-    ));
+        },))
+        .with_children(|builder| {
+            builder.spawn((
+                // Text
+                TextBundle::default(),
+                TextCoordinatesMarker,
+            ));
+            builder.spawn((
+                // Text
+                TextBundle::default(),
+                UITextCoordinatesMarker,
+            ));
+        });
 }
 
 fn update_coordinates(
     mut mouse_coordinates: ResMut<MouseCoordinates>,
+    ui_mouse_coordinates: Res<UIMouseCoordinates>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
-    window_query: Query<&Window>,
     mut mouse_event: EventReader<MouseMotion>,
 ) {
     for _ in mouse_event.read() {
         let (camera, camera_transform) = camera_query.single();
 
-        let window = window_query.single();
-
-        if let Some(coordinates) = window
-            .cursor_position()
-            .and_then(|cursor| camera.viewport_to_world_2d(camera_transform, cursor))
+        if let Some(coordinates) = camera
+            .viewport_to_world_2d(camera_transform, ui_mouse_coordinates.0)
             .map(|coordinates| coordinates.trunc())
         {
             mouse_coordinates.0 = coordinates;
+        }
+    }
+}
+
+fn update_ui_coordinates(
+    mut ui_mouse_coordinates: ResMut<UIMouseCoordinates>,
+    window_query: Query<&Window>,
+    mut mouse_event: EventReader<MouseMotion>,
+) {
+    for _ in mouse_event.read() {
+        let window = window_query.single();
+
+        if let Some(coordinates) = window.cursor_position() {
+            ui_mouse_coordinates.0 = coordinates;
         }
     }
 }
@@ -69,6 +102,21 @@ fn update_coordinates_text(
     *text = Text::from_section(
         format!(
             "mouse: \nx: {}\ny: {}",
+            mouse_coordinates.0.x, mouse_coordinates.0.y
+        ),
+        TextStyle::default(),
+    );
+}
+
+fn update_ui_coordinates_text(
+    mouse_coordinates: Res<UIMouseCoordinates>,
+    mut text_query: Query<&mut Text, With<UITextCoordinatesMarker>>,
+) {
+    let mut text = text_query.single_mut();
+
+    *text = Text::from_section(
+        format!(
+            "UI mouse: \nx: {}\ny: {}",
             mouse_coordinates.0.x, mouse_coordinates.0.y
         ),
         TextStyle::default(),
