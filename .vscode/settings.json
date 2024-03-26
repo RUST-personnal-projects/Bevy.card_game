@@ -1,6 +1,0 @@
-{
-    "rust-analyzer.linkedProjects": [
-        ".\\card_game\\Cargo.toml"
-    ],
-    "rust-analyzer.showUnlinkedFileNotification": false
-}
