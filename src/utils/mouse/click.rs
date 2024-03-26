@@ -71,7 +71,7 @@ fn is_released(
 }
 
 #[cfg(test)]
-mod click {
+mod tests {
     use super::*;
 
     mod is_clicked {

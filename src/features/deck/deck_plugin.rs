@@ -110,7 +110,7 @@ fn hide_deck_data(mut node_query: Query<&mut Visibility, With<NodeDeckMarker>>) 
 }
 
 #[cfg(test)]
-mod deck_plugin {
+mod tests {
     use super::*;
     use crate::utils::test::count_entities::*;
 

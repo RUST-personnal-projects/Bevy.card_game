@@ -65,7 +65,7 @@ fn is_hovered(
 }
 
 #[cfg(test)] // This attribute ensures this module is only compiled when running tests
-mod hover {
+mod tests {
     use super::*;
     use crate::features::deck::deck_plugin::CARD_BACK_PATH;
     use crate::utils::test::asset_loading::{check_loaded, TestAssetLoadingState};
