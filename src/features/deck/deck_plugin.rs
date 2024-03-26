@@ -214,8 +214,8 @@ mod tests {
                 .get::<Text>()
                 .and_then(|text| text.sections.first().map(|section| section.value.clone()))
                 .unwrap();
-            let visibility = app.world.entity(node).get::<Visibility>().unwrap().clone();
-            let style = app.world.entity(node).get::<Style>().unwrap().clone();
+            let visibility = app.world.entity(node).get::<Visibility>().unwrap();
+            let style = app.world.entity(node).get::<Style>().unwrap();
 
             assert_eq!(visibility, Visibility::Visible);
             assert_eq!(text, "cards remaining: 0".to_string());
@@ -248,7 +248,7 @@ mod tests {
 
             app.update();
 
-            let visibility = app.world.entity(node).get::<Visibility>().unwrap().clone();
+            let visibility = app.world.entity(node).get::<Visibility>().unwrap();
 
             assert_eq!(visibility, Visibility::Hidden);
         }
