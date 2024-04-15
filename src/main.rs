@@ -9,16 +9,16 @@ use utils::mouse;
 
 fn main() {
     App::default()
-        .add_plugins(DefaultPlugins.set(WindowPlugin {
-            primary_window: Some(Window {
-                mode: WindowMode::BorderlessFullscreen,
-                ..default()
-            }),
-            ..default()
-        }))
-        .add_plugins(mouse::MousePlugins)
-        .add_plugins(DeckPlugin)
-        .add_systems(Startup, setup)
+        // .add_plugins(DefaultPlugins.set(WindowPlugin {
+        //     primary_window: Some(Window {
+        //         mode: WindowMode::BorderlessFullscreen,
+        //         ..default()
+        //     }),
+        //     ..default()
+        // }))
+        // .add_plugins(mouse::MousePlugins)
+        // .add_plugins(DeckPlugin)
+        // .add_systems(Startup, setup)
         .run();
 }
 
