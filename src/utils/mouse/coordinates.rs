@@ -35,6 +35,7 @@ impl Plugin for CoordinatesPlugin {
     }
 }
 
+#[cfg(debug_assertions)]
 fn setup(mut commands: Commands) {
     // UI node
     commands
@@ -79,6 +80,7 @@ fn update_coordinates(
     }
 }
 
+#[cfg(debug_assertions)]
 fn update_ui_coordinates(
     mut ui_mouse_coordinates: ResMut<UIMouseCoordinates>,
     window_query: Query<&Window>,
@@ -108,6 +110,7 @@ fn update_coordinates_text(
     );
 }
 
+#[cfg(debug_assertions)]
 fn update_ui_coordinates_text(
     mouse_coordinates: Res<UIMouseCoordinates>,
     mut text_query: Query<&mut Text, With<UITextCoordinatesMarker>>,
