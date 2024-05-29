@@ -9,16 +9,16 @@ use utils::mouse;
 
 fn main() {
     App::default()
-        // .add_plugins(DefaultPlugins.set(WindowPlugin {
-        //     primary_window: Some(Window {
-        //         mode: WindowMode::BorderlessFullscreen,
-        //         ..default()
-        //     }),
-        //     ..default()
-        // }))
-        // .add_plugins(mouse::MousePlugins)
-        // .add_plugins(DeckPlugin)
-        // .add_systems(Startup, setup)
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(Window {
+                mode: WindowMode::SizedFullscreen,
+                ..default()
+            }),
+            ..default()
+        }))
+        .add_plugins(mouse::MousePlugins)
+        .add_plugins(DeckPlugin)
+        .add_systems(Startup, setup)
         .run();
 }
 
@@ -47,7 +47,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             Transform::from_xyz(300., 0., 0.),
         ),
     ] {
-        let texture_path = CardBundle::texture_path(color, variant);
+        let texture_path = format!("assets/{}", CardBundle::texture_path(color, variant));
 
         let texture = asset_server.load(texture_path);
 
