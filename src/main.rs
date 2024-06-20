@@ -4,7 +4,10 @@ use bevy::{prelude::*, window::*};
 mod features;
 mod utils;
 
-use features::{cards::*, deck::deck_plugin::DeckPlugin};
+use features::{
+    cards::{CardBundle, CardColor, CardVariant},
+    deck::DeckPlugin,
+};
 use utils::mouse;
 
 fn main() {
