@@ -1,4 +1,6 @@
-use bevy::{asset::LoadState, prelude::*};
+use bevy::prelude::*;
+
+use crate::utils::assets::loader::Loaded;
 
 use super::{Clicked, MouseCoordinates};
 
@@ -40,30 +42,24 @@ fn gizmo(
 fn is_hovered(
     hoverables_query: Query<
         (Entity, &Handle<Image>, &Transform),
-        (With<Hoverable>, Without<Clicked>),
+        (With<Hoverable>, With<Loaded<Image>>, Without<Clicked>),
     >,
     images: Res<Assets<Image>>,
-    assets: Res<AssetServer>,
     mouse: Res<MouseCoordinates>,
     mut commands: Commands,
 ) {
     for (entity, image, transform) in hoverables_query.iter() {
-        if assets.load_state(image) == LoadState::Loaded {
-            let image = images.get(image).unwrap();
-            let half_width = image.width() as f32 / 2.;
-            let half_height = image.height() as f32 / 2.;
+        let image = images.get(image).unwrap();
+        let half_width = image.width() as f32 / 2.;
+        let half_height = image.height() as f32 / 2.;
 
-            let min_x = transform.translation.x - half_width;
-            let max_x = transform.translation.x + half_width;
-            let min_y = transform.translation.y - half_height;
-            let max_y = transform.translation.y + half_height;
+        let min_x = transform.translation.x - half_width;
+        let max_x = transform.translation.x + half_width;
+        let min_y = transform.translation.y - half_height;
+        let max_y = transform.translation.y + half_height;
 
-            if mouse.0.x >= min_x && mouse.0.x <= max_x && mouse.0.y >= min_y && mouse.0.y <= max_y
-            {
-                commands.entity(entity).insert(Hovered);
-            } else {
-                commands.entity(entity).remove::<Hovered>();
-            }
+        if mouse.0.x >= min_x && mouse.0.x <= max_x && mouse.0.y >= min_y && mouse.0.y <= max_y {
+            commands.entity(entity).insert(Hovered);
         } else {
             commands.entity(entity).remove::<Hovered>();
         }
@@ -73,11 +69,12 @@ fn is_hovered(
 #[cfg(test)] // This attribute ensures this module is only compiled when running tests
 mod tests {
     use super::*;
-    use crate::features::deck::deck_plugin::CARD_BACK_PATH;
     use crate::utils::test::asset_loading::{check_loaded, TestAssetLoadingState};
     use crate::utils::test::test_plugins::TestPlugin;
 
     mod is_hovered {
+        use crate::features::deck::CARD_BACK_PATH;
+
         use super::*;
 
         #[test]
