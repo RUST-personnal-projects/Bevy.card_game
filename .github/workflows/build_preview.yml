@@ -1,0 +1,62 @@
+name: Bevy app Preview
+
+on:
+    push:
+        branches:
+            - dev
+
+jobs:
+    fmt:
+        name: Rustfmt
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: dtolnay/rust-toolchain@nightly
+              with:
+                components: rustfmt
+            - run: cargo fmt --check
+
+    clippy:
+        name: Clippy
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: dtolnay/rust-toolchain@nightly
+              with:
+                components: clippy
+            - uses: Swatinem/rust-cache@v2
+            - run: cargo clippy -- -D warnings
+
+    test:
+        name: Test
+        runs-on: ubuntu-latest
+        needs: [fmt, clippy]
+        steps:
+            - uses: actions/checkout@v4
+            - uses: dtolnay/rust-toolchain@nightly
+            - uses: Swatinem/rust-cache@v2
+            - name: Run tests
+              run: cargo test
+
+    build-and-move:
+        name: Build and move artifacts
+        runs-on: ubuntu-latest
+        needs: [test, clippy, fmt]
+
+        steps:
+            - uses: actions/checkout@v2
+            - uses: dtolnay/rust-toolchain@nightly
+            - uses: Swatinem/rust-cache@v2
+            - run: rustup target add wasm32-unknown-unknown
+            - name: Build wasm
+              run: cargo build --target wasm32-unknown-unknown --release
+            - name: Generate JS bindings
+              run: wasm-bindgen --no-typescript --target web --out-dir ./out/ --out-name "card_game" ./target/wasm32-unknown-unknown/release/card_game.wasm
+            - uses: actions/upload-artifact@v4
+              with:
+                name: preview-artifact
+                path: |
+                  out/*
+                  assets/
+                if-no-files-found: error
+                retention-days: 30
