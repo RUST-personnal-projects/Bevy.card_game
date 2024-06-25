@@ -73,7 +73,7 @@ mod tests {
     use crate::utils::test::test_plugins::TestPlugin;
 
     mod is_hovered {
-        use crate::features::deck::CARD_BACK_PATH;
+        use crate::{features::deck::CARD_BACK_PATH, utils::assets::loader::is_asset_loaded};
 
         use super::*;
 
@@ -104,6 +104,7 @@ mod tests {
             app.add_systems(
                 Update,
                 (
+                    is_asset_loaded::<Image>,
                     check_loaded::<Image>,
                     is_hovered.run_if(in_state(TestAssetLoadingState::Loaded)),
                 )
@@ -151,6 +152,7 @@ mod tests {
             app.add_systems(
                 Update,
                 (
+                    is_asset_loaded::<Image>,
                     check_loaded::<Image>,
                     is_hovered.run_if(in_state(TestAssetLoadingState::Loaded)),
                 )
@@ -198,6 +200,7 @@ mod tests {
             app.add_systems(
                 Update,
                 (
+                    is_asset_loaded::<Image>,
                     check_loaded::<Image>,
                     is_hovered.run_if(in_state(TestAssetLoadingState::Loaded)),
                 )
@@ -245,6 +248,7 @@ mod tests {
             app.add_systems(
                 Update,
                 (
+                    is_asset_loaded::<Image>,
                     check_loaded::<Image>,
                     is_hovered.run_if(in_state(TestAssetLoadingState::Loaded)),
                 )
