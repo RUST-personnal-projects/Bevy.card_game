@@ -53,6 +53,7 @@ jobs:
             - uses: Swatinem/rust-cache@v2
             - name: Install system dependencies
               run: sudo apt-get update && sudo apt-get install -y g++ pkg-config libx11-dev libasound2-dev libudev-dev libxkbcommon-x11-0
+            - run: cargo install wasm-bindgen-cli
             - run: rustup target add wasm32-unknown-unknown
             - name: Build wasm
               run: cargo build --target wasm32-unknown-unknown --release
