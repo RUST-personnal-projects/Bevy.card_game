@@ -48,7 +48,7 @@ jobs:
         needs: [test, clippy, fmt]
 
         steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v4
             - uses: dtolnay/rust-toolchain@nightly
             - uses: Swatinem/rust-cache@v2
             - name: Install system dependencies
@@ -63,7 +63,9 @@ jobs:
               with:
                 name: preview-artifact
                 path: |
-                  out/*
+                  out/card_game_bg.wasm
+                  out/card_game.js
                   assets/
+                  bevy_loader.js
                 if-no-files-found: error
                 retention-days: 30
