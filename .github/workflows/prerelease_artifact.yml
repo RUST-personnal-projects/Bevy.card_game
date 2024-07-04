@@ -3,6 +3,7 @@ name: Bevy app prerelease artifact creation
 on:
   release:
     types: [prereleased]
+  workflow_dispatch:
 
 jobs:
     fmt:
