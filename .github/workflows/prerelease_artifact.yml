@@ -86,4 +86,4 @@ jobs:
           with:
             token: ${{ secrets.ORG_GH_TOKEN }}
             repository: ${{ vars.REPO_OWNER }}/${{ vars.FRONTEND_REPO }}
-            event-type: trigger-event
+            event-type: bevy-prerelease-event
