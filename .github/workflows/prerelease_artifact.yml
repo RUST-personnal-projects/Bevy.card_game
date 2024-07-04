@@ -1,9 +1,9 @@
-name: Bevy app Preview
+name: Bevy app prerelease artifact creation
 
 on:
-    push:
-        branches:
-            - dev
+  release:
+    types: [prereleased]
+  workflow_dispatch:
 
 jobs:
     fmt:
