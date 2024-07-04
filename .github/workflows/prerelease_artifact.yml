@@ -60,3 +60,16 @@ jobs:
                   assets/
                 if-no-files-found: error
                 retention-days: 30
+
+    dispatch-frontend:
+      name: Dispatch to frontend workflow after artifact generation
+      runs-on: ubuntu-latest
+      needs: [build-and-move]
+
+      steps:
+        - name: Dispatch workflow in frontend repository
+          uses: peter-evans/repository-dispatch@v1
+          with:
+            token: ${{ secrets.ORG_GH_TOKEN }}
+            repository: ${{ vars.REPO_OWNER }}/${{ vars.FRONTEND_REPO }}
+            event-type: trigger-event
