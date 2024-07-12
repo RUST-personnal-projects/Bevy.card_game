@@ -30,11 +30,12 @@ pub fn is_asset_loaded<T: Asset>(
                 );
                 commands.entity(entity).insert(Loaded::<T>::new());
             }
-            LoadState::Failed => warn!(
-                "Couldn't load asset {:?} of type {:?} for entity {:?}.",
+            LoadState::Failed(err) => warn!(
+                "Couldn't load asset {:?} of type {:?} for entity {:?} because of error: {:?}.",
                 asset,
                 type_name::<T>(),
-                entity
+                entity,
+                err
             ),
             _ => {}
         }

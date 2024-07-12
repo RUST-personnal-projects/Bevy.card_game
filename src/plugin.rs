@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{color::palettes, prelude::*};
 
 use crate::{
     utils::mouse::{coordinates::UIMouseCoordinates, hover::Hoverable, Clickable, Hovered},
@@ -53,8 +53,8 @@ fn spawn_deck_sprite(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn((
             NodeBundle {
-                background_color: BackgroundColor(Color::DARK_GRAY),
-                border_color: BorderColor(Color::BLACK),
+                background_color: BackgroundColor(palettes::css::DARK_GRAY),
+                border_color: BorderColor(palettes::css::BLACK),
                 visibility: Visibility::Hidden,
                 ..default()
             },

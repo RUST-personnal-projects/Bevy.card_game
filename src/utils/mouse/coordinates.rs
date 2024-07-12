@@ -1,4 +1,4 @@
-use bevy::{input::mouse::MouseMotion, prelude::*};
+use bevy::{color::palettes, input::mouse::MouseMotion, prelude::*};
 
 #[derive(Resource, Default)]
 pub struct MouseCoordinates(pub Vec2);
@@ -38,10 +38,11 @@ impl Plugin for CoordinatesPlugin {
 #[cfg(debug_assertions)]
 fn setup(mut commands: Commands) {
     // UI node
+
     commands
         .spawn((NodeBundle {
-            background_color: BackgroundColor(Color::DARK_GRAY),
-            border_color: BorderColor(Color::BLACK),
+            background_color: BackgroundColor(palettes::css::DARK_GREY.into()),
+            border_color: BorderColor(palettes::css::DARK_GREY.into()),
             style: Style {
                 flex_direction: FlexDirection::Column,
                 ..default()

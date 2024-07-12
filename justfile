@@ -24,7 +24,7 @@ copy_to_front:
         mkdir -p $FRONT_PATH/public; \
         cp out/* $FRONT_PATH/public; \
         cp -r assets $FRONT_PATH/public; \
-        echo "    Copied wasm files to front folder"; \
+        echo "Copied wasm files to front folder"; \
     else \
         echo "Error: FRONT_PATH var is not set"; \
     fi

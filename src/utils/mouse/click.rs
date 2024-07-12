@@ -1,4 +1,5 @@
 use bevy::{
+    color::palettes,
     input::{mouse::MouseButtonInput, ButtonState},
     prelude::*,
 };
@@ -34,7 +35,7 @@ fn gizmo(
                 transform.translation.truncate(),
                 transform.rotation.z,
                 Vec2::new(width, height),
-                Color::BLUE,
+                palettes::css::BLUE,
             );
         }
     }
@@ -87,17 +88,17 @@ mod tests {
             app.add_event::<MouseButtonInput>();
 
             // Create window to be clicked
-            let window_id = app.world.spawn(Window::default()).id();
+            let window_id = app.world_mut().spawn(Window::default()).id();
 
             // Send mouse click event
-            app.world.send_event(MouseButtonInput {
+            app.world_mut().send_event(MouseButtonInput {
                 button: MouseButton::Left,
                 state: ButtonState::Pressed,
                 window: window_id,
             });
 
             // Add Clickable entity that is not Clickable but hovered
-            let entity_id = app.world.spawn(Hovered).id();
+            let entity_id = app.world_mut().spawn(Hovered).id();
 
             // Add our system
             app.add_systems(Update, is_clicked);
@@ -106,7 +107,7 @@ mod tests {
             app.update();
 
             // retrieve entity after update
-            let entity = app.world.get_entity(entity_id);
+            let entity = app.world().get_entity(entity_id);
 
             assert!(entity.is_some());
             assert!(!entity.unwrap().contains::<Clicked>());
@@ -122,20 +123,20 @@ mod tests {
             app.add_event::<MouseButtonInput>();
 
             // Create window to be clicked
-            let window_id = app.world.spawn(Window::default()).id();
+            let window_id = app.world_mut().spawn(Window::default()).id();
 
             // Send mouse click event
-            app.world.send_event(MouseButtonInput {
+            app.world_mut().send_event(MouseButtonInput {
                 button: MouseButton::Left,
                 state: ButtonState::Pressed,
                 window: window_id,
             });
 
             // Add Clickable entity that is also Hovered
-            let entity_id = app.world.spawn((Clickable, Hovered)).id();
+            let entity_id = app.world_mut().spawn((Clickable, Hovered)).id();
 
             // Add second Clickable entity that is also Hovered
-            let second_entity_id = app.world.spawn((Clickable, Hovered)).id();
+            let second_entity_id = app.world_mut().spawn((Clickable, Hovered)).id();
 
             // Add our system
             app.add_systems(Update, is_clicked);
@@ -144,8 +145,8 @@ mod tests {
             app.update();
 
             // retrieve entity after update
-            let entity = app.world.get_entity(entity_id);
-            let second_entity = app.world.get_entity(second_entity_id);
+            let entity = app.world().get_entity(entity_id);
+            let second_entity = app.world().get_entity(second_entity_id);
 
             assert!(entity.is_some());
             assert!(entity.unwrap().contains::<Clicked>());
@@ -162,17 +163,17 @@ mod tests {
             app.add_event::<MouseButtonInput>();
 
             // Create window to be clicked
-            let window_id = app.world.spawn(Window::default()).id();
+            let window_id = app.world_mut().spawn(Window::default()).id();
 
             // Send mouse click event
-            app.world.send_event(MouseButtonInput {
+            app.world_mut().send_event(MouseButtonInput {
                 button: MouseButton::Left,
                 state: ButtonState::Pressed,
                 window: window_id,
             });
 
             // Add Clickable entity that is also Hovered
-            let entity_id = app.world.spawn((Clickable, Hovered)).id();
+            let entity_id = app.world_mut().spawn((Clickable, Hovered)).id();
 
             // Add our system
             app.add_systems(Update, is_clicked);
@@ -181,7 +182,7 @@ mod tests {
             app.update();
 
             // retrieve entity after update
-            let entity = app.world.get_entity(entity_id);
+            let entity = app.world().get_entity(entity_id);
 
             assert!(entity.is_some());
             assert!(entity.unwrap().contains::<Clicked>());
@@ -197,7 +198,7 @@ mod tests {
             app.add_event::<MouseButtonInput>();
 
             // Add Clickable entity that is also Hovered
-            let entity_id = app.world.spawn((Clickable, Hovered)).id();
+            let entity_id = app.world_mut().spawn((Clickable, Hovered)).id();
 
             // Add our system
             app.add_systems(Update, is_clicked);
@@ -206,7 +207,7 @@ mod tests {
             app.update();
 
             // retrieve entity after update
-            let entity = app.world.get_entity(entity_id);
+            let entity = app.world().get_entity(entity_id);
 
             assert!(entity.is_some());
             assert!(!entity.unwrap().contains::<Clicked>());
@@ -222,17 +223,17 @@ mod tests {
             app.add_event::<MouseButtonInput>();
 
             // Create window to be clicked
-            let window_id = app.world.spawn(Window::default()).id();
+            let window_id = app.world_mut().spawn(Window::default()).id();
 
             // Send mouse click event
-            app.world.send_event(MouseButtonInput {
+            app.world_mut().send_event(MouseButtonInput {
                 button: MouseButton::Left,
                 state: ButtonState::Pressed,
                 window: window_id,
             });
 
             // Add Clickable entity that is not Hovered
-            let entity_id = app.world.spawn(Clickable).id();
+            let entity_id = app.world_mut().spawn(Clickable).id();
 
             // Add our system
             app.add_systems(Update, is_clicked);
@@ -241,7 +242,7 @@ mod tests {
             app.update();
 
             // retrieve entity after update
-            let entity = app.world.get_entity(entity_id);
+            let entity = app.world().get_entity(entity_id);
 
             assert!(entity.is_some());
             assert!(!entity.unwrap().contains::<Clicked>());
@@ -257,7 +258,7 @@ mod tests {
             app.add_event::<MouseButtonInput>();
 
             // Add Clickable entity that is not Hovered
-            let entity_id = app.world.spawn(Clickable).id();
+            let entity_id = app.world_mut().spawn(Clickable).id();
 
             // Add our system
             app.add_systems(Update, is_clicked);
@@ -266,7 +267,7 @@ mod tests {
             app.update();
 
             // retrieve entity after update
-            let entity = app.world.get_entity(entity_id);
+            let entity = app.world().get_entity(entity_id);
 
             assert!(entity.is_some());
             assert!(!entity.unwrap().contains::<Clicked>());
@@ -286,20 +287,20 @@ mod tests {
             app.add_event::<MouseButtonInput>();
 
             // Create window to be clicked
-            let window_id = app.world.spawn(Window::default()).id();
+            let window_id = app.world_mut().spawn(Window::default()).id();
 
             // Send mouse click event
-            app.world.send_event(MouseButtonInput {
+            app.world_mut().send_event(MouseButtonInput {
                 button: MouseButton::Left,
                 state: ButtonState::Released,
                 window: window_id,
             });
 
             // Add Clicked entity
-            let entity_id = app.world.spawn(Clicked).id();
+            let entity_id = app.world_mut().spawn(Clicked).id();
 
             // Add second Clicked entity
-            let second_entity_id = app.world.spawn(Clicked).id();
+            let second_entity_id = app.world_mut().spawn(Clicked).id();
 
             // Add our system
             app.add_systems(Update, is_released);
@@ -308,10 +309,10 @@ mod tests {
             app.update();
 
             // retrieve entity after update
-            let entity = app.world.get_entity(entity_id);
+            let entity = app.world().get_entity(entity_id);
 
             // retrieve second entity after update
-            let second_entity = app.world.get_entity(second_entity_id);
+            let second_entity = app.world().get_entity(second_entity_id);
 
             assert!(entity.is_some());
             assert!(!entity.unwrap().contains::<Clicked>());
@@ -328,17 +329,17 @@ mod tests {
             app.add_event::<MouseButtonInput>();
 
             // Create window to be clicked
-            let window_id = app.world.spawn(Window::default()).id();
+            let window_id = app.world_mut().spawn(Window::default()).id();
 
             // Send mouse click event
-            app.world.send_event(MouseButtonInput {
+            app.world_mut().send_event(MouseButtonInput {
                 button: MouseButton::Left,
                 state: ButtonState::Released,
                 window: window_id,
             });
 
             // Add Clicked entity
-            let entity_id = app.world.spawn(Clicked).id();
+            let entity_id = app.world_mut().spawn(Clicked).id();
 
             // Add our system
             app.add_systems(Update, is_released);
@@ -347,7 +348,7 @@ mod tests {
             app.update();
 
             // retrieve entity after update
-            let entity = app.world.get_entity(entity_id);
+            let entity = app.world().get_entity(entity_id);
 
             assert!(entity.is_some());
             assert!(!entity.unwrap().contains::<Clicked>());
@@ -363,7 +364,7 @@ mod tests {
             app.add_event::<MouseButtonInput>();
 
             // Add Clicked entity
-            let entity_id = app.world.spawn(Clicked).id();
+            let entity_id = app.world_mut().spawn(Clicked).id();
 
             // Add our system
             app.add_systems(Update, is_released);
@@ -372,7 +373,7 @@ mod tests {
             app.update();
 
             // retrieve entity after update
-            let entity = app.world.get_entity(entity_id);
+            let entity = app.world().get_entity(entity_id);
 
             assert!(entity.is_some());
             assert!(entity.unwrap().contains::<Clicked>());
@@ -388,17 +389,17 @@ mod tests {
             app.add_event::<MouseButtonInput>();
 
             // Create window to be clicked
-            let window_id = app.world.spawn(Window::default()).id();
+            let window_id = app.world_mut().spawn(Window::default()).id();
 
             // Send mouse click event
-            app.world.send_event(MouseButtonInput {
+            app.world_mut().send_event(MouseButtonInput {
                 button: MouseButton::Left,
                 state: ButtonState::Released,
                 window: window_id,
             });
 
             // Add entity
-            let entity_id = app.world.spawn(Clickable).id();
+            let entity_id = app.world_mut().spawn(Clickable).id();
 
             // Add our system
             app.add_systems(Update, is_released);
@@ -407,7 +408,7 @@ mod tests {
             app.update();
 
             // retrieve entity after update
-            let entity = app.world.get_entity(entity_id);
+            let entity = app.world().get_entity(entity_id);
 
             assert!(entity.is_some());
             assert!(!entity.unwrap().contains::<Clicked>());
@@ -423,7 +424,7 @@ mod tests {
             app.add_event::<MouseButtonInput>();
 
             // Add entity
-            let entity_id = app.world.spawn(Clickable).id();
+            let entity_id = app.world_mut().spawn(Clickable).id();
 
             // Add our system
             app.add_systems(Update, is_released);
@@ -432,7 +433,7 @@ mod tests {
             app.update();
 
             // retrieve entity after update
-            let entity = app.world.get_entity(entity_id);
+            let entity = app.world().get_entity(entity_id);
 
             assert!(entity.is_some());
             assert!(!entity.unwrap().contains::<Clicked>());
