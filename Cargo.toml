@@ -4,7 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bevy = { version = "0.13.2" }
+bevy = "0.14.0"
+bevy_dylib = { version = "0.14.0", optional = true }
 rand = "0.8.5"
 
 [profile.dev]

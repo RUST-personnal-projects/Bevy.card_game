@@ -1,9 +1,9 @@
 # Watch app in release mode
-release:
+watch_release:
     cargo watch -x  "run --profile release"
 
 # Watch app in debug mode
-debug:
+watch_debug:
     cargo watch -x "run --features bevy/dynamic_linking"
 
 # Build wasm executable in the chosen mode: debug or release
@@ -18,12 +18,14 @@ build_wasm mode="debug":
     --out-name "card_game" \
     ./target/wasm32-unknown-unknown/{{mode}}/card_game.wasm
 
-# Copy wasm executable to frontend directory, path deducted from FRONT_PATH env variable
+# Copy wasm executable to frontend directory, path deduced from FRONT_PATH env variable
 copy_to_front:
     @if [[ -v FRONT_PATH ]]; then \
         mkdir -p $FRONT_PATH/public; \
+        cp web/* $FRONT_PATH/public; \
         cp out/* $FRONT_PATH/public; \
         cp -r assets $FRONT_PATH/public; \
+        echo "Copied wasm files to front folder"; \
     else \
         echo "Error: FRONT_PATH var is not set"; \
     fi

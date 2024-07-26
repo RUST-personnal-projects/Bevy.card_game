@@ -1,6 +1,6 @@
 pub mod generator;
 
-use bevy::prelude::*;
+use bevy::{color::palettes, prelude::*};
 
 use crate::{
     utils::mouse::{coordinates::UIMouseCoordinates, hover::Hoverable, Clickable, Hovered},
@@ -67,8 +67,8 @@ fn spawn_deck_sprite(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn((
             NodeBundle {
-                background_color: BackgroundColor(Color::DARK_GRAY),
-                border_color: BorderColor(Color::BLACK),
+                background_color: BackgroundColor(palettes::css::DARK_GREY.into()),
+                border_color: BorderColor(palettes::css::DARK_GREY.into()),
                 visibility: Visibility::Hidden,
                 ..default()
             },
@@ -143,7 +143,7 @@ mod tests {
 
             app.update();
 
-            let entities_count = app.world.resource::<EntityCount>();
+            let entities_count = app.world().resource::<EntityCount>();
 
             assert_eq!(entities_count.0, deck_size);
         }
@@ -159,7 +159,7 @@ mod tests {
         fn deck_hovered() {
             let mut app = App::new();
 
-            app.world.spawn((Hovered, DeckMarker));
+            app.world_mut().spawn((Hovered, DeckMarker));
 
             app.add_systems(
                 Update,
@@ -169,7 +169,7 @@ mod tests {
 
             app.update();
 
-            let Test(value) = app.world.resource::<Test>();
+            let Test(value) = app.world().resource::<Test>();
 
             assert_eq!(*value, 1);
         }
@@ -178,7 +178,7 @@ mod tests {
         fn deck_not_hovered() {
             let mut app = App::new();
 
-            app.world.spawn(DeckMarker);
+            app.world_mut().spawn(DeckMarker);
 
             app.add_systems(
                 Update,
@@ -188,7 +188,7 @@ mod tests {
 
             app.update();
 
-            let Test(value) = app.world.resource::<Test>();
+            let Test(value) = app.world().resource::<Test>();
 
             assert_eq!(*value, 0);
         }
@@ -205,7 +205,7 @@ mod tests {
                 .init_resource::<UIMouseCoordinates>();
 
             let node = app
-                .world
+                .world_mut()
                 .spawn((
                     NodeBundle {
                         visibility: Visibility::Hidden,
@@ -215,21 +215,21 @@ mod tests {
                 ))
                 .id();
             let text = app
-                .world
+                .world_mut()
                 .spawn((TextBundle::default(), TextDeckMarker))
                 .id();
-            app.world.entity_mut(node).add_child(text);
+            app.world_mut().entity_mut(node).add_child(text);
 
             app.update();
 
             let text = app
-                .world
+                .world()
                 .entity(text)
                 .get::<Text>()
                 .and_then(|text| text.sections.first().map(|section| section.value.clone()))
                 .unwrap();
-            let visibility = app.world.entity(node).get::<Visibility>().unwrap();
-            let style = app.world.entity(node).get::<Style>().unwrap();
+            let visibility = app.world().entity(node).get::<Visibility>().unwrap();
+            let style = app.world().entity(node).get::<Style>().unwrap();
 
             assert_eq!(visibility, Visibility::Visible);
             assert_eq!(text, "cards remaining: 0".to_string());
@@ -250,7 +250,7 @@ mod tests {
             app.add_systems(Update, hide_deck_data);
 
             let node = app
-                .world
+                .world_mut()
                 .spawn((
                     NodeBundle {
                         visibility: Visibility::Visible,
@@ -262,7 +262,7 @@ mod tests {
 
             app.update();
 
-            let visibility = app.world.entity(node).get::<Visibility>().unwrap();
+            let visibility = app.world().entity(node).get::<Visibility>().unwrap();
 
             assert_eq!(visibility, Visibility::Hidden);
         }

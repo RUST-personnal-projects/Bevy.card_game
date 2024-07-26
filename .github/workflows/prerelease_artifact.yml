@@ -65,7 +65,7 @@ jobs:
                 cp -r assets upload/
                 cp out/card_game_bg.wasm upload/
                 cp out/card_game.js upload/
-                cp bevy_loader.js upload/
+                cp web/bevy_loader.js upload/
 
             - uses: actions/upload-artifact@v4
               with:
