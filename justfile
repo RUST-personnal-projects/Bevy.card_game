@@ -18,10 +18,11 @@ build_wasm mode="debug":
     --out-name "card_game" \
     ./target/wasm32-unknown-unknown/{{mode}}/card_game.wasm
 
-# Copy wasm executable to frontend directory, path deducted from FRONT_PATH env variable
+# Copy wasm executable to frontend directory, path deduced from FRONT_PATH env variable
 copy_to_front:
     @if [[ -v FRONT_PATH ]]; then \
         mkdir -p $FRONT_PATH/public; \
+        cp web/* $FRONT_PATH/public; \
         cp out/* $FRONT_PATH/public; \
         cp -r assets $FRONT_PATH/public; \
         echo "Copied wasm files to front folder"; \
