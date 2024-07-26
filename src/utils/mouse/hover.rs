@@ -1,4 +1,4 @@
-use bevy::{color::palettes, prelude::*};
+use bevy::{color::palettes::css, prelude::*};
 
 use crate::utils::assets::loader::Loaded;
 
@@ -33,7 +33,7 @@ fn gizmo(
                 transform.translation.truncate(),
                 transform.rotation.z,
                 Vec2::new(width, height),
-                palettes::css::GREEN,
+                css::GREEN,
             );
         }
     }
@@ -89,15 +89,18 @@ mod tests {
 
             // Add mouse coordinates Resource
             let mut coordinates = app.world_mut().resource_mut::<MouseCoordinates>();
+            let mut coordinates = app.world_mut().resource_mut::<MouseCoordinates>();
             coordinates.0 = Vec2::new(0., 0.);
 
             // Access the asset server and start loading Image
+            let asset_server = app.world_mut().resource_mut::<AssetServer>();
             let asset_server = app.world_mut().resource_mut::<AssetServer>();
 
             let image: Handle<Image> = asset_server.load(CARD_BACK_PATH);
 
             // Add Hoverable entity that is Hovered
             let entity_id = app
+                .world_mut()
                 .world_mut()
                 .spawn((Hoverable, image, Transform::from_xyz(0., 0., 0.)))
                 .id();
@@ -115,12 +118,14 @@ mod tests {
 
             // update the game until asset is loaded then check if hovered
             while *app.world().resource::<State<TestAssetLoadingState>>().get()
+            while *app.world().resource::<State<TestAssetLoadingState>>().get()
                 == TestAssetLoadingState::Loading
             {
                 app.update();
             }
 
             // retrieve entity after update
+            let entity = app.world().get_entity(entity_id);
             let entity = app.world().get_entity(entity_id);
 
             assert!(entity.is_some());
@@ -137,15 +142,18 @@ mod tests {
 
             // Add mouse coordinates Resource
             let mut coordinates = app.world_mut().resource_mut::<MouseCoordinates>();
+            let mut coordinates = app.world_mut().resource_mut::<MouseCoordinates>();
             coordinates.0 = Vec2::new(200., 0.);
 
             // Access the asset server and start loading Image
+            let asset_server = app.world_mut().resource_mut::<AssetServer>();
             let asset_server = app.world_mut().resource_mut::<AssetServer>();
 
             let image: Handle<Image> = asset_server.load(CARD_BACK_PATH);
 
             // Add Hoverable entity that is Hovered
             let entity_id = app
+                .world_mut()
                 .world_mut()
                 .spawn((Hoverable, image, Transform::from_xyz(0., 0., 0.)))
                 .id();
@@ -163,12 +171,14 @@ mod tests {
 
             // update the game until asset is loaded then check if hovered
             while *app.world().resource::<State<TestAssetLoadingState>>().get()
+            while *app.world().resource::<State<TestAssetLoadingState>>().get()
                 == TestAssetLoadingState::Loading
             {
                 app.update();
             }
 
             // retrieve entity after update
+            let entity = app.world().get_entity(entity_id);
             let entity = app.world().get_entity(entity_id);
 
             assert!(entity.is_some());
@@ -185,15 +195,18 @@ mod tests {
 
             // Add mouse coordinates Resource
             let mut coordinates = app.world_mut().resource_mut::<MouseCoordinates>();
+            let mut coordinates = app.world_mut().resource_mut::<MouseCoordinates>();
             coordinates.0 = Vec2::new(0., 0.);
 
             // Access the asset server and start loading Image
+            let asset_server = app.world_mut().resource_mut::<AssetServer>();
             let asset_server = app.world_mut().resource_mut::<AssetServer>();
 
             let image: Handle<Image> = asset_server.load(CARD_BACK_PATH);
 
             // Add Hoverable entity that is Hovered
             let entity_id = app
+                .world_mut()
                 .world_mut()
                 .spawn((image, Transform::from_xyz(0., 0., 0.)))
                 .id();
@@ -211,12 +224,14 @@ mod tests {
 
             // update the game until asset is loaded then check if hovered
             while *app.world().resource::<State<TestAssetLoadingState>>().get()
+            while *app.world().resource::<State<TestAssetLoadingState>>().get()
                 == TestAssetLoadingState::Loading
             {
                 app.update();
             }
 
             // retrieve entity after update
+            let entity = app.world().get_entity(entity_id);
             let entity = app.world().get_entity(entity_id);
 
             assert!(entity.is_some());
@@ -233,15 +248,18 @@ mod tests {
 
             // Add mouse coordinates Resource
             let mut coordinates = app.world_mut().resource_mut::<MouseCoordinates>();
+            let mut coordinates = app.world_mut().resource_mut::<MouseCoordinates>();
             coordinates.0 = Vec2::new(200., 0.);
 
             // Access the asset server and start loading Image
+            let asset_server = app.world_mut().resource_mut::<AssetServer>();
             let asset_server = app.world_mut().resource_mut::<AssetServer>();
 
             let image: Handle<Image> = asset_server.load(CARD_BACK_PATH);
 
             // Add Hoverable entity that is Hovered
             let entity_id = app
+                .world_mut()
                 .world_mut()
                 .spawn((image, Transform::from_xyz(0., 0., 0.)))
                 .id();
@@ -259,12 +277,14 @@ mod tests {
 
             // update the game until asset is loaded then check if hovered
             while *app.world().resource::<State<TestAssetLoadingState>>().get()
+            while *app.world().resource::<State<TestAssetLoadingState>>().get()
                 == TestAssetLoadingState::Loading
             {
                 app.update();
             }
 
             // retrieve entity after update
+            let entity = app.world().get_entity(entity_id);
             let entity = app.world().get_entity(entity_id);
 
             assert!(entity.is_some());
