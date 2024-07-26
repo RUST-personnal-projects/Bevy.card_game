@@ -44,7 +44,7 @@ distribution:
 # Run tests, capture is optional
 test capture="false":
     if [ {{capture}} = true ]; then \
-        cargo watch -x "test"; \
+        cargo watch -x "test --features bevy/dynamic_linking"; \
     else \
-        cargo watch -x "test -- --nocapture"; \
+        cargo watch -x "test --features bevy/dynamic_linking -- --nocapture"; \
     fi
