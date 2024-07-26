@@ -1,4 +1,4 @@
-use bevy::{prelude::*, window::*};
+use bevy::{asset::AssetMetaCheck, prelude::*};
 
 mod features;
 mod utils;

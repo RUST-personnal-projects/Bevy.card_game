@@ -144,7 +144,6 @@ mod tests {
             app.update();
 
             let entities_count = app.world().resource::<EntityCount>();
-            let entities_count = app.world().resource::<EntityCount>();
 
             assert_eq!(entities_count.0, deck_size);
         }
@@ -161,7 +160,6 @@ mod tests {
             let mut app = App::new();
 
             app.world_mut().spawn((Hovered, DeckMarker));
-            app.world_mut().spawn((Hovered, DeckMarker));
 
             app.add_systems(
                 Update,
@@ -171,7 +169,6 @@ mod tests {
 
             app.update();
 
-            let Test(value) = app.world().resource::<Test>();
             let Test(value) = app.world().resource::<Test>();
 
             assert_eq!(*value, 1);
@@ -182,7 +179,6 @@ mod tests {
             let mut app = App::new();
 
             app.world_mut().spawn(DeckMarker);
-            app.world_mut().spawn(DeckMarker);
 
             app.add_systems(
                 Update,
@@ -192,7 +188,6 @@ mod tests {
 
             app.update();
 
-            let Test(value) = app.world().resource::<Test>();
             let Test(value) = app.world().resource::<Test>();
 
             assert_eq!(*value, 0);
@@ -211,7 +206,6 @@ mod tests {
 
             let node = app
                 .world_mut()
-                .world_mut()
                 .spawn((
                     NodeBundle {
                         visibility: Visibility::Hidden,
@@ -222,23 +216,18 @@ mod tests {
                 .id();
             let text = app
                 .world_mut()
-                .world_mut()
                 .spawn((TextBundle::default(), TextDeckMarker))
                 .id();
-            app.world_mut().entity_mut(node).add_child(text);
             app.world_mut().entity_mut(node).add_child(text);
 
             app.update();
 
             let text = app
                 .world()
-                .world()
                 .entity(text)
                 .get::<Text>()
                 .and_then(|text| text.sections.first().map(|section| section.value.clone()))
                 .unwrap();
-            let visibility = app.world().entity(node).get::<Visibility>().unwrap();
-            let style = app.world().entity(node).get::<Style>().unwrap();
             let visibility = app.world().entity(node).get::<Visibility>().unwrap();
             let style = app.world().entity(node).get::<Style>().unwrap();
 
@@ -262,7 +251,6 @@ mod tests {
 
             let node = app
                 .world_mut()
-                .world_mut()
                 .spawn((
                     NodeBundle {
                         visibility: Visibility::Visible,
@@ -274,7 +262,6 @@ mod tests {
 
             app.update();
 
-            let visibility = app.world().entity(node).get::<Visibility>().unwrap();
             let visibility = app.world().entity(node).get::<Visibility>().unwrap();
 
             assert_eq!(visibility, Visibility::Hidden);
