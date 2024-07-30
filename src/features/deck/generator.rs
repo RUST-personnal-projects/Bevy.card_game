@@ -1,7 +1,8 @@
 use rand::seq::SliceRandom;
 
+use crate::features::cards::{CardColor, CardVariant};
+
 use super::CardInfo;
-use crate::{CardColor, CardVariant};
 
 pub struct DeckGenerator {
     number0: u8,

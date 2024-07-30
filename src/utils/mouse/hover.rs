@@ -1,6 +1,6 @@
 use bevy::{color::palettes::css, prelude::*};
 
-use crate::utils::assets::loader::Loaded;
+use crate::utils::Loaded;
 
 use super::{Clicked, MouseCoordinates};
 
@@ -10,13 +10,8 @@ pub struct Hoverable;
 #[derive(Component, Debug)]
 pub struct Hovered;
 
-pub struct HoverPlugin;
-
-/// This plugins allows the App to know an Hoverable entity with an Image Component is being hovered by the mouse
-impl Plugin for HoverPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(Update, (is_hovered, gizmo));
-    }
+pub(super) fn plugin(app: &mut App) {
+    app.add_systems(Update, (is_hovered, gizmo));
 }
 
 fn gizmo(
@@ -69,11 +64,13 @@ fn is_hovered(
 #[cfg(test)] // This attribute ensures this module is only compiled when running tests
 mod tests {
     use super::*;
-    use crate::utils::test::asset_loading::{check_loaded, TestAssetLoadingState};
-    use crate::utils::test::test_plugins::TestPlugin;
+    use crate::utils::{
+        test,
+        test::{check_loaded, TestAssetLoadingState},
+    };
 
     mod is_hovered {
-        use crate::{features::deck::CARD_BACK_PATH, utils::assets::loader::is_asset_loaded};
+        use crate::{features::CARD_BACK_PATH, utils::assets::is_asset_loaded};
 
         use super::*;
 
@@ -82,7 +79,7 @@ mod tests {
         fn hoverable_hovering() {
             // Setup app
             let mut app = App::new();
-            app.add_plugins((MinimalPlugins, TestPlugin))
+            app.add_plugins((MinimalPlugins, test::plugin))
                 .init_resource::<MouseCoordinates>();
 
             // Add mouse coordinates Resource
@@ -130,7 +127,7 @@ mod tests {
         fn hoverable_not_hovering() {
             // Setup app
             let mut app = App::new();
-            app.add_plugins((MinimalPlugins, TestPlugin))
+            app.add_plugins((MinimalPlugins, test::plugin))
                 .init_resource::<MouseCoordinates>();
 
             // Add mouse coordinates Resource
@@ -178,7 +175,7 @@ mod tests {
         fn not_hoverable_hovering() {
             // Setup app
             let mut app = App::new();
-            app.add_plugins((MinimalPlugins, TestPlugin))
+            app.add_plugins((MinimalPlugins, test::plugin))
                 .init_resource::<MouseCoordinates>();
 
             // Add mouse coordinates Resource
@@ -226,7 +223,7 @@ mod tests {
         fn not_hoverable_not_hovering() {
             // Setup app
             let mut app = App::new();
-            app.add_plugins((MinimalPlugins, TestPlugin))
+            app.add_plugins((MinimalPlugins, test::plugin))
                 .init_resource::<MouseCoordinates>();
 
             // Add mouse coordinates Resource

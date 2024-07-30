@@ -3,11 +3,8 @@ use bevy::{asset::AssetMetaCheck, prelude::*};
 mod features;
 mod utils;
 
-use features::{
-    cards::{CardBundle, CardColor, CardVariant},
-    deck,
-};
-use utils::mouse;
+use features::{CardBundle, CardColor, CardVariant};
+use utils::mousePrelude::MouseInteractionBundle;
 
 pub struct AppPlugin;
 
@@ -37,7 +34,7 @@ impl Plugin for AppPlugin {
         );
 
         // Project Plugins
-        app.add_plugins((mouse::MousePlugins, deck::DeckPlugin));
+        app.add_plugins((utils::plugin, features::plugin));
 
         // TODO: remove this setup once scene are loaded automatically
         app.add_systems(Startup, setup);
@@ -80,7 +77,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 transform,
                 ..default()
             },
-            mouse::MouseInteractionBundle::default(),
+            MouseInteractionBundle::default(),
         ));
     }
 }

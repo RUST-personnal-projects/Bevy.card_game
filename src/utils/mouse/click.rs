@@ -12,13 +12,8 @@ pub struct Clickable;
 #[derive(Component, Debug)]
 pub struct Clicked;
 
-pub struct ClickPlugin;
-
-/// This plugins allows the App to know a Clickable entity with an Image Component got clicked by the mouse left click
-impl Plugin for ClickPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(Update, (is_clicked, is_released, gizmo));
-    }
+pub(super) fn plugin(app: &mut App) {
+    app.add_systems(Update, (is_clicked, is_released, gizmo));
 }
 
 fn gizmo(

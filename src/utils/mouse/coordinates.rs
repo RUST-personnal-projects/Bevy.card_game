@@ -12,27 +12,15 @@ struct TextCoordinatesMarker;
 #[derive(Component)]
 struct UITextCoordinatesMarker;
 
-pub struct CoordinatesPlugin;
-
-impl Plugin for CoordinatesPlugin {
-    #[cfg(not(debug_assertions))]
-    fn build(&self, app: &mut App) {
-        app.add_systems(Update, update_coordinates)
-            .init_resource::<MouseCoordinates>()
-            .init_resource::<UIMouseCoordinates>();
-    }
-
-    #[cfg(debug_assertions)]
-    fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup)
-            .add_systems(Update, (update_ui_coordinates, update_ui_coordinates_text))
-            .add_systems(
-                Update,
-                (update_coordinates, update_coordinates_text).after(update_ui_coordinates),
-            )
-            .init_resource::<MouseCoordinates>()
-            .init_resource::<UIMouseCoordinates>();
-    }
+pub(super) fn plugin(app: &mut App) {
+    app.add_systems(Startup, setup)
+        .add_systems(Update, (update_ui_coordinates, update_ui_coordinates_text))
+        .add_systems(
+            Update,
+            (update_coordinates, update_coordinates_text).after(update_ui_coordinates),
+        )
+        .init_resource::<MouseCoordinates>()
+        .init_resource::<UIMouseCoordinates>();
 }
 
 #[cfg(debug_assertions)]
