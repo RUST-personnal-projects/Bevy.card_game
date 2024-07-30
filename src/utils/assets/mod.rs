@@ -1,13 +1,9 @@
+pub(crate) mod loader;
+
 use bevy::prelude::*;
 
-pub mod loader;
+pub use loader::{is_asset_loaded, Loaded};
 
-use loader::is_asset_loaded;
-
-pub struct AssetsPlugin;
-
-impl Plugin for AssetsPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(Update, is_asset_loaded::<Image>);
-    }
+pub(super) fn plugin(app: &mut App) {
+    app.add_systems(Update, is_asset_loaded::<Image>);
 }

@@ -1,14 +1,16 @@
-pub mod generator;
+mod generator;
 
-use bevy::{color::palettes, prelude::*};
+use bevy::{color::palettes::css, prelude::*};
 
-use crate::{
-    utils::mouse::{coordinates::UIMouseCoordinates, hover::Hoverable, Clickable, Hovered},
-    CardBundle,
+pub(super) use generator::DeckGenerator;
+
+use crate::utils::mouse::{
+    click::Clickable,
+    coordinates::UIMouseCoordinates,
+    hover::{Hoverable, Hovered},
 };
 
-use crate::{CardColor, CardVariant};
-pub use generator::DeckGenerator;
+use super::cards::{CardBundle, CardColor, CardVariant};
 
 pub type CardInfo = (CardColor, CardVariant);
 
@@ -20,8 +22,6 @@ impl Default for Deck {
         Self(DeckGenerator::default().generate_deck())
     }
 }
-
-pub struct DeckPlugin;
 
 #[derive(Component)]
 struct InDeckMarker;
@@ -39,17 +39,15 @@ const DEFAULT_OFFSET: f32 = 15.;
 
 pub const CARD_BACK_PATH: &str = "cards/card_back/card_back.png";
 
-impl Plugin for DeckPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(Startup, (fill_deck, spawn_deck_sprite))
-            .add_systems(
-                Update,
-                (
-                    show_deck_data.run_if(is_deck_hovered),
-                    hide_deck_data.run_if(not(is_deck_hovered)),
-                ),
-            );
-    }
+pub(super) fn plugin(app: &mut App) {
+    app.add_systems(Startup, (fill_deck, spawn_deck_sprite))
+        .add_systems(
+            Update,
+            (
+                show_deck_data.run_if(is_deck_hovered),
+                hide_deck_data.run_if(not(is_deck_hovered)),
+            ),
+        );
 }
 
 // Spawn one entity invisible per card in the deck
@@ -67,8 +65,8 @@ fn spawn_deck_sprite(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn((
             NodeBundle {
-                background_color: BackgroundColor(palettes::css::DARK_GREY.into()),
-                border_color: BorderColor(palettes::css::DARK_GREY.into()),
+                background_color: BackgroundColor(css::DARK_GRAY.into()),
+                border_color: BorderColor(Color::BLACK),
                 visibility: Visibility::Hidden,
                 ..default()
             },
@@ -126,9 +124,10 @@ fn hide_deck_data(mut node_query: Query<&mut Visibility, With<NodeDeckMarker>>) 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::utils::test::count_entities::*;
 
     mod fill_deck {
+        use crate::utils::test::count_entities::{count_entities, EntityCount};
+
         use super::*;
 
         #[test]

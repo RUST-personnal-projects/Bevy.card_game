@@ -1,10 +1,10 @@
-use bevy::{color::palettes, input::mouse::MouseMotion, prelude::*};
+use bevy::{color::palettes::css, input::mouse::MouseMotion, prelude::*};
 
 #[derive(Resource, Default)]
-pub struct MouseCoordinates(pub Vec2);
+pub(crate) struct MouseCoordinates(pub Vec2);
 
 #[derive(Resource, Default)]
-pub struct UIMouseCoordinates(pub Vec2);
+pub(crate) struct UIMouseCoordinates(pub Vec2);
 
 #[derive(Component)]
 struct TextCoordinatesMarker;
@@ -12,27 +12,15 @@ struct TextCoordinatesMarker;
 #[derive(Component)]
 struct UITextCoordinatesMarker;
 
-pub struct CoordinatesPlugin;
-
-impl Plugin for CoordinatesPlugin {
-    #[cfg(not(debug_assertions))]
-    fn build(&self, app: &mut App) {
-        app.add_systems(Update, update_coordinates)
-            .init_resource::<MouseCoordinates>()
-            .init_resource::<UIMouseCoordinates>();
-    }
-
-    #[cfg(debug_assertions)]
-    fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup)
-            .add_systems(Update, (update_ui_coordinates, update_ui_coordinates_text))
-            .add_systems(
-                Update,
-                (update_coordinates, update_coordinates_text).after(update_ui_coordinates),
-            )
-            .init_resource::<MouseCoordinates>()
-            .init_resource::<UIMouseCoordinates>();
-    }
+pub(super) fn plugin(app: &mut App) {
+    app.add_systems(Startup, setup)
+        .add_systems(Update, (update_ui_coordinates, update_ui_coordinates_text))
+        .add_systems(
+            Update,
+            (update_coordinates, update_coordinates_text).after(update_ui_coordinates),
+        )
+        .init_resource::<MouseCoordinates>()
+        .init_resource::<UIMouseCoordinates>();
 }
 
 #[cfg(debug_assertions)]
@@ -41,8 +29,8 @@ fn setup(mut commands: Commands) {
 
     commands
         .spawn((NodeBundle {
-            background_color: BackgroundColor(palettes::css::DARK_GREY.into()),
-            border_color: BorderColor(palettes::css::DARK_GREY.into()),
+            background_color: BackgroundColor(css::DARK_GRAY.into()),
+            border_color: BorderColor(Color::BLACK),
             style: Style {
                 flex_direction: FlexDirection::Column,
                 ..default()

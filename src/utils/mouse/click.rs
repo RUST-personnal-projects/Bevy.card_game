@@ -1,24 +1,19 @@
 use bevy::{
-    color::palettes,
+    color::palettes::css,
     input::{mouse::MouseButtonInput, ButtonState},
     prelude::*,
 };
 
-use super::Hovered;
+use super::hover::Hovered;
 
 #[derive(Component, Debug, Default)]
-pub struct Clickable;
+pub(crate) struct Clickable;
 
 #[derive(Component, Debug)]
-pub struct Clicked;
+pub(crate) struct Clicked;
 
-pub struct ClickPlugin;
-
-/// This plugins allows the App to know a Clickable entity with an Image Component got clicked by the mouse left click
-impl Plugin for ClickPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(Update, (is_clicked, is_released, gizmo));
-    }
+pub(super) fn plugin(app: &mut App) {
+    app.add_systems(Update, (is_clicked, is_released, gizmo));
 }
 
 fn gizmo(
@@ -35,7 +30,7 @@ fn gizmo(
                 transform.translation.truncate(),
                 transform.rotation.z,
                 Vec2::new(width, height),
-                palettes::css::BLUE,
+                css::GREEN,
             );
         }
     }

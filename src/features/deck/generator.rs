@@ -1,7 +1,8 @@
 use rand::seq::SliceRandom;
 
+use crate::features::cards::{CardColor, CardVariant};
+
 use super::CardInfo;
-use crate::{CardColor, CardVariant};
 
 pub struct DeckGenerator {
     number0: u8,
@@ -63,21 +64,6 @@ impl DeckGenerator {
     /// Each card that can be colored is created N x C times, with N being the number of times
     /// we want that card to be created and C the number of possible colors the card has.
     ///
-    /// ### Example
-    /// ```rust
-    ///let deck_gen = DeckGenerator {
-    ///    number0: 1,
-    ///    numbers: 2,
-    ///    invert: 2,
-    ///    block: 2,
-    ///    plus_2: 2,
-    ///    plus_4: 4,
-    ///    wild_card: 4,
-    ///};
-    /// let deck: Deck = deck_gen.generate_deck();
-    ///```
-    /// This would create a deck with one 0 card in each color, 2 cards of every other number in each color,
-    /// two invert/block/+2 cards in each colors, 4 +4/jokers in wild (grey) color.
     pub fn generate_deck(self) -> Vec<CardInfo> {
         let mut deck = Vec::new();
 

@@ -1,24 +1,14 @@
-pub mod click;
-pub mod coordinates;
-pub mod hover;
+pub(crate) mod click;
+pub(crate) mod coordinates;
+pub(crate) mod hover;
 
 use bevy::prelude::*;
 
-pub use self::{
-    click::{Clickable, Clicked},
-    coordinates::MouseCoordinates,
-    hover::{Hoverable, Hovered},
-};
+use click::Clickable;
+use hover::Hoverable;
 
-pub struct MousePlugins;
-
-impl PluginGroup for MousePlugins {
-    fn build(self) -> bevy::app::PluginGroupBuilder {
-        bevy::app::PluginGroupBuilder::start::<Self>()
-            .add(click::ClickPlugin)
-            .add(hover::HoverPlugin)
-            .add(coordinates::CoordinatesPlugin)
-    }
+pub(super) fn plugin(app: &mut App) {
+    app.add_plugins((click::plugin, hover::plugin, coordinates::plugin));
 }
 
 #[derive(Bundle, Debug, Default)]
