@@ -1,14 +1,14 @@
 use bevy::{color::palettes::css, prelude::*};
 
-use crate::utils::Loaded;
+use crate::utils::assets::Loaded;
 
-use super::{Clicked, MouseCoordinates};
+use super::{click::Clicked, coordinates::MouseCoordinates};
 
 #[derive(Component, Debug, Default)]
-pub struct Hoverable;
+pub(crate) struct Hoverable;
 
 #[derive(Component, Debug)]
-pub struct Hovered;
+pub(crate) struct Hovered;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, (is_hovered, gizmo));
@@ -64,13 +64,16 @@ fn is_hovered(
 #[cfg(test)] // This attribute ensures this module is only compiled when running tests
 mod tests {
     use super::*;
-    use crate::utils::{
-        test,
-        test::{check_loaded, TestAssetLoadingState},
-    };
+    use crate::utils::test;
 
     mod is_hovered {
-        use crate::{features::CARD_BACK_PATH, utils::assets::is_asset_loaded};
+
+        use test::asset_loading::{check_loaded, TestAssetLoadingState};
+
+        use crate::{
+            features::deck::CARD_BACK_PATH,
+            utils::{assets::is_asset_loaded, mouse::coordinates::MouseCoordinates},
+        };
 
         use super::*;
 

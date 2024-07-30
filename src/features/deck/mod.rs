@@ -2,14 +2,15 @@ mod generator;
 
 use bevy::{color::palettes::css, prelude::*};
 
-use crate::utils::mousePrelude::{Clickable, Hoverable, Hovered, UIMouseCoordinates};
-
 pub(super) use generator::DeckGenerator;
 
-use super::{
-    cards::{CardColor, CardVariant},
-    CardBundle,
+use crate::utils::mouse::{
+    click::Clickable,
+    coordinates::UIMouseCoordinates,
+    hover::{Hoverable, Hovered},
 };
+
+use super::cards::{CardBundle, CardColor, CardVariant};
 
 pub type CardInfo = (CardColor, CardVariant);
 
@@ -125,7 +126,7 @@ mod tests {
     use super::*;
 
     mod fill_deck {
-        use crate::utils::{count_entities, EntityCount};
+        use crate::utils::test::count_entities::{count_entities, EntityCount};
 
         use super::*;
 

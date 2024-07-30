@@ -1,10 +1,8 @@
-mod asset_loading;
-mod count_entities;
+pub(crate) mod asset_loading;
+pub(crate) mod count_entities;
 
+use asset_loading::TestAssetLoadingState;
 use bevy::{prelude::*, render::texture::ImageLoader, state::app::StatesPlugin};
-
-pub(super) use self::asset_loading::{check_loaded, TestAssetLoadingState};
-pub use self::count_entities::{count_entities, EntityCount};
 
 pub(super) fn plugin(app: &mut App) {
     // During tests, StatesPlugin might not have been added

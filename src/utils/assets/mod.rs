@@ -1,4 +1,4 @@
-mod loader;
+pub(crate) mod loader;
 
 use bevy::prelude::*;
 

@@ -1,10 +1,9 @@
 use bevy::{asset::AssetMetaCheck, prelude::*};
+use features::cards::{CardBundle, CardColor, CardVariant};
+use utils::mouse::MouseInteractionBundle;
 
 mod features;
 mod utils;
-
-use features::{CardBundle, CardColor, CardVariant};
-use utils::mousePrelude::MouseInteractionBundle;
 
 pub struct AppPlugin;
 

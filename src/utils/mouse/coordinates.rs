@@ -1,10 +1,10 @@
 use bevy::{color::palettes::css, input::mouse::MouseMotion, prelude::*};
 
 #[derive(Resource, Default)]
-pub struct MouseCoordinates(pub Vec2);
+pub(crate) struct MouseCoordinates(pub Vec2);
 
 #[derive(Resource, Default)]
-pub struct UIMouseCoordinates(pub Vec2);
+pub(crate) struct UIMouseCoordinates(pub Vec2);
 
 #[derive(Component)]
 struct TextCoordinatesMarker;

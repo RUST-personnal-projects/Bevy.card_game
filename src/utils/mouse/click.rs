@@ -4,13 +4,13 @@ use bevy::{
     prelude::*,
 };
 
-use super::Hovered;
+use super::hover::Hovered;
 
 #[derive(Component, Debug, Default)]
-pub struct Clickable;
+pub(crate) struct Clickable;
 
 #[derive(Component, Debug)]
-pub struct Clicked;
+pub(crate) struct Clicked;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, (is_clicked, is_released, gizmo));
