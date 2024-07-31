@@ -1,8 +1,8 @@
 use bevy::{asset::AssetMetaCheck, prelude::*};
-use features::cards::{CardBundle, CardColor, CardVariant};
+use game::cards::{CardBundle, CardColor, CardVariant};
 use utils::mouse::MouseInteractionBundle;
 
-mod features;
+mod game;
 mod utils;
 
 pub struct AppPlugin;
@@ -33,7 +33,7 @@ impl Plugin for AppPlugin {
         );
 
         // Project Plugins
-        app.add_plugins((utils::plugin, features::plugin));
+        app.add_plugins((utils::plugin, game::plugin));
 
         // TODO: remove this setup once scene are loaded automatically
         app.add_systems(Startup, setup);
@@ -65,7 +65,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             Transform::from_xyz(300., 0., 0.),
         ),
     ] {
-        let texture_path = format!("assets/{}", CardBundle::texture_path(color, variant));
+        let texture_path = CardBundle::texture_path(color, variant);
 
         let texture = asset_server.load(texture_path);
 

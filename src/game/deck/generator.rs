@@ -1,6 +1,6 @@
 use rand::seq::SliceRandom;
 
-use crate::features::cards::{CardColor, CardVariant};
+use crate::game::cards::{CardColor, CardVariant};
 
 use super::CardInfo;
 

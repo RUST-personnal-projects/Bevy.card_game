@@ -71,7 +71,7 @@ mod tests {
         use test::asset_loading::{check_loaded, TestAssetLoadingState};
 
         use crate::{
-            features::deck::CARD_BACK_PATH,
+            game::deck::CARD_BACK_PATH,
             utils::{assets::is_asset_loaded, mouse::coordinates::MouseCoordinates},
         };
 
