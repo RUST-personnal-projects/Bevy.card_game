@@ -1,6 +1,6 @@
 # Watch app in release mode
 watch_release:
-    cargo watch -x  "run --profile release"
+    cargo watch -x  "run --profile release-native --no-default-features"
 
 # Watch app in debug mode
 watch_debug:
