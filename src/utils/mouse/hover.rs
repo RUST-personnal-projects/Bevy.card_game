@@ -1,6 +1,8 @@
 use bevy::{color::palettes::css, prelude::*};
 
 use crate::utils::assets::Loaded;
+#[cfg(feature = "dev")]
+use crate::utils::dev_tools::DevState;
 
 use super::{click::Clicked, coordinates::MouseCoordinates};
 
@@ -11,9 +13,12 @@ pub(crate) struct Hoverable;
 pub(crate) struct Hovered;
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(Update, (is_hovered, gizmo));
+    app.add_systems(Update, is_hovered);
+    #[cfg(feature = "dev")]
+    app.add_systems(Update, gizmo.run_if(in_state(DevState::On)));
 }
 
+#[cfg(feature = "dev")]
 fn gizmo(
     mut gizmos: Gizmos,
     hoverables_query: Query<(&Handle<Image>, &Transform), (With<Hovered>, Without<Clicked>)>,

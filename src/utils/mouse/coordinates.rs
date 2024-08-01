@@ -66,10 +66,10 @@ mod debug {
     use crate::utils::dev_tools::DebugNodeMarker;
 
     #[derive(Component)]
-    pub(super)struct MouseCoordinatesMarker;
+    pub(super) struct MouseCoordinatesMarker;
 
     #[derive(Component)]
-    pub(super)struct UIMouseCoordinatesMarker;
+    pub(super) struct UIMouseCoordinatesMarker;
 
     pub(super) fn setup_mouse_debug_view(
         mut commands: Commands,

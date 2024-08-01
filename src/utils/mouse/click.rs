@@ -4,6 +4,9 @@ use bevy::{
     prelude::*,
 };
 
+#[cfg(feature = "dev")]
+use crate::utils::dev_tools::DevState;
+
 use super::hover::Hovered;
 
 #[derive(Component, Debug, Default)]
@@ -13,9 +16,12 @@ pub(crate) struct Clickable;
 pub(crate) struct Clicked;
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(Update, (is_clicked, is_released, gizmo));
+    app.add_systems(Update, (is_clicked, is_released));
+    #[cfg(feature = "dev")]
+    app.add_systems(Update, gizmo.run_if(in_state(DevState::On)));
 }
 
+#[cfg(feature = "dev")]
 fn gizmo(
     mut gizmos: Gizmos,
     hoverables_query: Query<(&Handle<Image>, &Transform), With<Clicked>>,
@@ -30,7 +36,7 @@ fn gizmo(
                 transform.translation.truncate(),
                 transform.rotation.z,
                 Vec2::new(width, height),
-                css::GREEN,
+                css::RED,
             );
         }
     }
