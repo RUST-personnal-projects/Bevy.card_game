@@ -1,12 +1,7 @@
 pub(crate) mod images;
-pub(crate) mod loader;
+// pub(crate) mod loader;
 
 use bevy::{prelude::*, utils::HashMap};
-
-// TODO: check if this is really useful for tests, or could be rewritten in a better way
-#[cfg(test)]
-pub use loader::is_asset_loaded;
-pub use loader::Loaded;
 
 pub(super) fn plugin(app: &mut App) {
     use self::images::ImageKey;
@@ -33,7 +28,8 @@ where
 }
 
 impl<K: AssetKey> HandleMap<K> {
-    #[cfg(test)]
+    // TODO: call this function from loading screen in order to actually load assets
+    #[allow(dead_code)]
     pub fn all_loaded(&self, asset_server: &AssetServer) -> bool {
         self.values()
             .all(|x| asset_server.is_loaded_with_dependencies(x))
