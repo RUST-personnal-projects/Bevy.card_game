@@ -1,5 +1,4 @@
 pub(crate) mod images;
-// pub(crate) mod loader;
 
 use bevy::{prelude::*, utils::HashMap};
 
