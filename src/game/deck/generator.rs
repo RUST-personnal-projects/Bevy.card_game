@@ -1,8 +1,6 @@
 use rand::seq::SliceRandom;
 
-use crate::game::cards::{CardColor, CardVariant};
-
-use super::CardInfo;
+use crate::game::card::{Card, CardColor, ColoredVariant, WildVariant};
 
 pub struct DeckGenerator {
     number0: u8,
@@ -29,7 +27,7 @@ impl Default for DeckGenerator {
 }
 
 /// Add all colored variants of a numbered card a given `number` of times
-fn add_colored_card(variant: CardVariant, number: u8) -> Vec<CardInfo> {
+fn add_colored_card(variant: ColoredVariant, number: u8) -> Vec<Card> {
     let mut cards = Vec::new();
     [
         CardColor::Blue,
@@ -39,21 +37,21 @@ fn add_colored_card(variant: CardVariant, number: u8) -> Vec<CardInfo> {
     ]
     .into_iter()
     .for_each(|color| {
-        cards.append(&mut add_card(variant, color, number));
+        cards.append(&mut add_card(Card::Colored(variant, color), number));
     });
 
     cards
 }
 
 /// Add a Wild card a given `number` of times
-fn add_wild_card(variant: CardVariant, number: u8) -> Vec<CardInfo> {
-    add_card(variant, CardColor::Wild, number)
+fn add_wild_card(variant: WildVariant, number: u8) -> Vec<Card> {
+    add_card(Card::Wild(variant), number)
 }
 
 /// Add any card a given `number` of times
-fn add_card(variant: CardVariant, color: CardColor, number: u8) -> Vec<CardInfo> {
+fn add_card(card: Card, number: u8) -> Vec<Card> {
     let mut cards = Vec::new();
-    (1..=number).for_each(|_| cards.push((color, variant)));
+    (1..=number).for_each(|_| cards.push(card));
 
     cards
 }
@@ -64,28 +62,31 @@ impl DeckGenerator {
     /// Each card that can be colored is created N x C times, with N being the number of times
     /// we want that card to be created and C the number of possible colors the card has.
     ///
-    pub fn generate_deck(self) -> Vec<CardInfo> {
+    pub fn generate_deck(self) -> Vec<Card> {
         let mut deck = Vec::new();
 
         // Add all colored 0 cards
-        deck.append(&mut add_colored_card(CardVariant::Number(0), self.number0));
+        deck.append(&mut add_colored_card(
+            ColoredVariant::Number(0),
+            self.number0,
+        ));
         // Add all colored cards from 1 to 9
         (1..=9).for_each(|card_number| {
             deck.append(&mut add_colored_card(
-                CardVariant::Number(card_number),
+                ColoredVariant::Number(card_number),
                 self.numbers,
             ))
         });
         // Add all colored block cards
-        deck.append(&mut add_colored_card(CardVariant::Block, self.block));
+        deck.append(&mut add_colored_card(ColoredVariant::Block, self.block));
         // Add all colored invert cards
-        deck.append(&mut add_colored_card(CardVariant::Invert, self.invert));
+        deck.append(&mut add_colored_card(ColoredVariant::Invert, self.invert));
         // Add all colored +2 cards
-        deck.append(&mut add_colored_card(CardVariant::PlusTwo, self.plus_2));
+        deck.append(&mut add_colored_card(ColoredVariant::PlusTwo, self.plus_2));
         // Add all +4 cards
-        deck.append(&mut add_wild_card(CardVariant::PlusFour, self.plus_4));
+        deck.append(&mut add_wild_card(WildVariant::PlusFour, self.plus_4));
         // Add all wild cards
-        deck.append(&mut add_wild_card(CardVariant::Wild, self.wild_card));
+        deck.append(&mut add_wild_card(WildVariant::ColorChange, self.wild_card));
 
         // shuffle the deck using rand
         deck.shuffle(&mut rand::thread_rng());

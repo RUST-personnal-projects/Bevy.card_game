@@ -1,5 +1,5 @@
 use bevy::{asset::AssetMetaCheck, prelude::*};
-use game::cards::{CardBundle, CardColor, CardVariant};
+use game::card::{Card, CardColor, ColoredVariant, WildVariant};
 use utils::mouse::MouseInteractionBundle;
 
 mod game;
@@ -29,7 +29,8 @@ impl Plugin for AppPlugin {
                     // See https://github.com/bevyengine/bevy_github_ci_template/issues/48.
                     meta_check: AssetMetaCheck::Never,
                     ..default()
-                }),
+                })
+                .set(ImagePlugin::default_nearest()),
         );
 
         // Project Plugins
@@ -43,34 +44,28 @@ impl Plugin for AppPlugin {
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(Camera2dBundle::default());
 
-    for (color, variant, transform) in [
+    for (card, transform) in [
         (
-            CardColor::Blue,
-            CardVariant::Number(9),
+            Card::Colored(ColoredVariant::Number(9), CardColor::Blue),
             Transform::from_xyz(-300., 0., 0.),
         ),
         (
-            CardColor::Wild,
-            CardVariant::Wild,
+            Card::Wild(WildVariant::ColorChange),
             Transform::from_xyz(-100., 0., 0.),
         ),
         (
-            CardColor::Wild,
-            CardVariant::PlusFour,
+            Card::Wild(WildVariant::PlusFour),
             Transform::from_xyz(100., 0., 0.),
         ),
         (
-            CardColor::Yellow,
-            CardVariant::Invert,
+            Card::Colored(ColoredVariant::Invert, CardColor::Yellow),
             Transform::from_xyz(300., 0., 0.),
         ),
     ] {
-        let texture_path = CardBundle::texture_path(color, variant);
-
-        let texture = asset_server.load(texture_path);
+        let texture = asset_server.load(card.texture_path());
 
         commands.spawn((
-            CardBundle { color, variant },
+            card,
             SpriteBundle {
                 texture,
                 transform,

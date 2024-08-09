@@ -1,6 +1,5 @@
 use bevy::{color::palettes::css, prelude::*};
 
-use crate::utils::assets::Loaded;
 #[cfg(feature = "dev")]
 use crate::utils::dev_tools::DevState;
 
@@ -42,7 +41,7 @@ fn gizmo(
 fn is_hovered(
     hoverables_query: Query<
         (Entity, &Handle<Image>, &Transform),
-        (With<Hoverable>, With<Loaded<Image>>, Without<Clicked>),
+        (With<Hoverable>, Without<Clicked>),
     >,
     images: Res<Assets<Image>>,
     mouse: Res<MouseCoordinates>,
@@ -72,15 +71,10 @@ mod tests {
     use crate::utils::test;
 
     mod is_hovered {
-
-        use test::asset_loading::{check_loaded, TestAssetLoadingState};
-
-        use crate::{
-            game::deck::CARD_BACK_PATH,
-            utils::{assets::is_asset_loaded, mouse::coordinates::MouseCoordinates},
-        };
-
         use super::*;
+        use test::asset_loading::{check_loaded, is_asset_loaded, TestAssetLoadingState};
+
+        use crate::{game::card::CARD_BACK_PATH, utils::mouse::coordinates::MouseCoordinates};
 
         #[test]
         // Hoverable [V] Hovering [V]
