@@ -10,12 +10,10 @@ use crate::utils::mouse::{
     hover::{Hoverable, Hovered},
 };
 
-use super::cards::{CardBundle, CardColor, CardVariant};
-
-pub type CardInfo = (CardColor, CardVariant);
+use super::card::{Card, CARD_BACK_PATH};
 
 #[derive(Component, Debug, Clone, PartialEq)]
-pub struct Deck(Vec<CardInfo>);
+pub struct Deck(Vec<Card>);
 
 impl Default for Deck {
     fn default() -> Self {
@@ -37,8 +35,6 @@ struct DeckMarker;
 
 const DEFAULT_OFFSET: f32 = 15.;
 
-pub const CARD_BACK_PATH: &str = "cards/card_back/card_back.png";
-
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(Startup, (fill_deck, spawn_deck_sprite))
         .add_systems(
@@ -50,12 +46,13 @@ pub(super) fn plugin(app: &mut App) {
         );
 }
 
-// Spawn one entity invisible per card in the deck
+// Spawn one invisible entity per card in the deck
+// TODO: rewrite this so that we spawn the deck instead of a set of cards
 fn fill_deck(mut commands: Commands) {
     let deck = Deck::default();
 
-    deck.0.into_iter().for_each(|(color, variant)| {
-        commands.spawn((CardBundle { color, variant }, InDeckMarker));
+    deck.0.into_iter().for_each(|card| {
+        commands.spawn((card, InDeckMarker));
     });
 }
 

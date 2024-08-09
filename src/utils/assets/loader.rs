@@ -1,6 +1,10 @@
-use std::{any::type_name, marker::PhantomData};
+#[cfg(test)]
+use std::any::type_name;
+use std::marker::PhantomData;
 
-use bevy::{asset::LoadState, prelude::*};
+#[cfg(test)]
+use bevy::asset::LoadState;
+use bevy::prelude::*;
 
 #[derive(Component)]
 pub struct Loaded<T: Asset> {
@@ -8,11 +12,13 @@ pub struct Loaded<T: Asset> {
 }
 
 impl<T: Asset> Loaded<T> {
+    #[cfg(test)]
     fn new() -> Self {
         Self { _type: PhantomData }
     }
 }
 
+#[cfg(test)]
 pub fn is_asset_loaded<T: Asset>(
     assets_query: Query<(Entity, &Handle<T>), Without<Loaded<T>>>,
     assets: Res<AssetServer>,
