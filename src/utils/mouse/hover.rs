@@ -1,7 +1,7 @@
 use bevy::{color::palettes::css, prelude::*};
 
 #[cfg(feature = "dev")]
-use crate::utils::dev_tools::DevState;
+use crate::dev_tools::DevState;
 
 use super::{click::Clicked, coordinates::MouseCoordinates};
 

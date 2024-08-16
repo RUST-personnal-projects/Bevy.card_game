@@ -1,16 +1,11 @@
-mod generator;
+pub(crate) mod generator;
 
-use bevy::{color::palettes::css, prelude::*};
+use bevy::prelude::*;
 
 pub(super) use generator::DeckGenerator;
 
-use crate::utils::mouse::{
-    click::Clickable,
-    coordinates::UIMouseCoordinates,
-    hover::{Hoverable, Hovered},
-};
-
-use super::card::{Card, CARD_BACK_PATH};
+use super::{card::Card, screen::Screen};
+use crate::utils::mouse::{coordinates::UIMouseCoordinates, hover::Hovered};
 
 #[derive(Component, Debug, Clone, PartialEq)]
 pub struct Deck(Vec<Card>);
@@ -25,25 +20,25 @@ impl Default for Deck {
 struct InDeckMarker;
 
 #[derive(Component)]
-struct NodeDeckMarker;
+pub(crate) struct NodeDeckMarker;
 
 #[derive(Component)]
-struct TextDeckMarker;
+pub(crate) struct TextDeckMarker;
 
 #[derive(Component)]
-struct DeckMarker;
+pub(crate) struct DeckMarker;
 
 const DEFAULT_OFFSET: f32 = 15.;
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(Startup, (fill_deck, spawn_deck_sprite))
-        .add_systems(
-            Update,
-            (
-                show_deck_data.run_if(is_deck_hovered),
-                hide_deck_data.run_if(not(is_deck_hovered)),
-            ),
-        );
+    app.add_systems(Startup, fill_deck).add_systems(
+        Update,
+        (
+            show_deck_data.run_if(is_deck_hovered),
+            hide_deck_data.run_if(not(is_deck_hovered)),
+        )
+            .run_if(in_state(Screen::Playing)),
+    );
 }
 
 // Spawn one invisible entity per card in the deck
@@ -54,37 +49,6 @@ fn fill_deck(mut commands: Commands) {
     deck.0.into_iter().for_each(|card| {
         commands.spawn((card, InDeckMarker));
     });
-}
-
-/// Spawn a card back sprite representing the deck and an UI node containing text to show how many cards are left
-fn spawn_deck_sprite(mut commands: Commands, asset_server: Res<AssetServer>) {
-    // UI node
-    commands
-        .spawn((
-            NodeBundle {
-                background_color: BackgroundColor(css::DARK_GRAY.into()),
-                border_color: BorderColor(Color::BLACK),
-                visibility: Visibility::Hidden,
-                ..default()
-            },
-            NodeDeckMarker,
-        ))
-        .with_children(|builder| {
-            builder.spawn((TextBundle::default(), TextDeckMarker));
-        });
-
-    let texture = asset_server.load(CARD_BACK_PATH);
-    // Card back
-    commands.spawn((
-        SpriteBundle {
-            transform: Transform::from_xyz(0., 300., 0.),
-            texture,
-            ..default()
-        },
-        DeckMarker,
-        Hoverable,
-        Clickable,
-    ));
 }
 
 fn is_deck_hovered(deck_hovered_query: Query<(), (With<DeckMarker>, With<Hovered>)>) -> bool {
