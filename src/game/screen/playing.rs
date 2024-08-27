@@ -4,54 +4,21 @@ use bevy::prelude::*;
 
 use crate::{
     game::{
-        card::{Card, CardColor, ColoredVariant, WildVariant, CARD_BACK_PATH},
+        card::CARD_BACK_PATH,
         deck::{DeckMarker, NodeDeckMarker, TextDeckMarker},
     },
-    utils::mouse::MouseInteractionBundle,
+    utils::UtilsBundle,
 };
 
 use bevy::color::palettes::css;
 
-use crate::utils::mouse::{click::Clickable, hover::Hoverable};
-
 use super::Screen;
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(OnEnter(Screen::Playing), enter_playing);
+    app.add_systems(OnEnter(Screen::Playing), spawn_deck);
 }
 
-fn enter_playing(mut commands: Commands, asset_server: Res<AssetServer>) {
-    for (card, transform) in [
-        (
-            Card::Colored(ColoredVariant::Number(9), CardColor::Blue),
-            Transform::from_xyz(-300., 0., 0.),
-        ),
-        (
-            Card::Wild(WildVariant::ColorChange),
-            Transform::from_xyz(-100., 0., 0.),
-        ),
-        (
-            Card::Wild(WildVariant::PlusFour),
-            Transform::from_xyz(100., 0., 0.),
-        ),
-        (
-            Card::Colored(ColoredVariant::Invert, CardColor::Yellow),
-            Transform::from_xyz(300., 0., 0.),
-        ),
-    ] {
-        let texture = asset_server.load(card.texture_path());
-
-        commands.spawn((
-            card,
-            SpriteBundle {
-                texture,
-                transform,
-                ..default()
-            },
-            MouseInteractionBundle::default(),
-        ));
-    }
-
+fn spawn_deck(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Spawn a card back sprite representing the deck and an UI node containing text to show how many cards are left
     // UI node
     commands
@@ -72,12 +39,11 @@ fn enter_playing(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Card back
     commands.spawn((
         SpriteBundle {
-            transform: Transform::from_xyz(0., 300., 0.),
+            transform: Transform::from_xyz(0., 0., 0.).with_scale(Vec3::new(0.5, 0.5, 1.)),
             texture,
             ..default()
         },
+        UtilsBundle::default(),
         DeckMarker,
-        Hoverable,
-        Clickable,
     ));
 }
