@@ -4,6 +4,7 @@ use bevy::{color::palettes::css, prelude::*};
 use crate::dev_tools::DevState;
 
 use super::{click::Clicked, coordinates::MouseCoordinates};
+use crate::utils::image_scaling::ScaledSize;
 
 #[derive(Component, Debug, Default)]
 pub(crate) struct Hoverable;
@@ -20,37 +21,29 @@ pub(super) fn plugin(app: &mut App) {
 #[cfg(feature = "dev")]
 fn gizmo(
     mut gizmos: Gizmos,
-    hoverables_query: Query<(&Handle<Image>, &Transform), (With<Hovered>, Without<Clicked>)>,
-    assets: Res<Assets<Image>>,
+    hoverables_query: Query<(&ScaledSize, &Transform), (With<Hovered>, Without<Clicked>)>,
 ) {
-    for (image, transform) in hoverables_query.iter() {
-        if let Some(image) = assets.get(image) {
-            let width = image.width() as f32 + 2.;
-            let height = image.height() as f32 + 2.;
+    for (scaled_size, transform) in hoverables_query.iter() {
+        let width = scaled_size.width() + 2.;
+        let height = scaled_size.height() + 2.;
 
-            gizmos.rect_2d(
-                transform.translation.truncate(),
-                transform.rotation.z,
-                Vec2::new(width, height),
-                css::GREEN,
-            );
-        }
+        gizmos.rect_2d(
+            transform.translation.truncate(),
+            transform.rotation.z,
+            Vec2::new(width, height),
+            css::GREEN,
+        );
     }
 }
 
 fn is_hovered(
-    hoverables_query: Query<
-        (Entity, &Handle<Image>, &Transform),
-        (With<Hoverable>, Without<Clicked>),
-    >,
-    images: Res<Assets<Image>>,
+    hoverables_query: Query<(Entity, &ScaledSize, &Transform), (With<Hoverable>, Without<Clicked>)>,
     mouse: Res<MouseCoordinates>,
     mut commands: Commands,
 ) {
-    for (entity, image, transform) in hoverables_query.iter() {
-        let image = images.get(image).unwrap();
-        let half_width = image.width() as f32 / 2.;
-        let half_height = image.height() as f32 / 2.;
+    for (entity, scaled_size, transform) in hoverables_query.iter() {
+        let half_width = scaled_size.width() / 2.;
+        let half_height = scaled_size.height() / 2.;
 
         let min_x = transform.translation.x - half_width;
         let max_x = transform.translation.x + half_width;
@@ -74,14 +67,17 @@ mod tests {
         use super::*;
         use test::asset_loading::{check_loaded, is_asset_loaded, TestAssetLoadingState};
 
-        use crate::{game::card::CARD_BACK_PATH, utils::mouse::coordinates::MouseCoordinates};
+        use crate::{
+            game::card::CARD_BACK_PATH,
+            utils::{image_scaling, mouse::coordinates::MouseCoordinates},
+        };
 
         #[test]
         // Hoverable [V] Hovering [V]
         fn hoverable_hovering() {
             // Setup app
             let mut app = App::new();
-            app.add_plugins((MinimalPlugins, test::plugin))
+            app.add_plugins((MinimalPlugins, test::plugin, image_scaling::plugin))
                 .init_resource::<MouseCoordinates>();
 
             // Add mouse coordinates Resource
@@ -96,7 +92,12 @@ mod tests {
             // Add Hoverable entity that is Hovered
             let entity_id = app
                 .world_mut()
-                .spawn((Hoverable, image, Transform::from_xyz(0., 0., 0.)))
+                .spawn((
+                    Hoverable,
+                    image,
+                    ScaledSize::default(),
+                    Transform::from_xyz(0., 0., 0.),
+                ))
                 .id();
 
             // Add two systems: one is a test system that checks asset is loaded, second is checking if Image asset is hovered
@@ -129,7 +130,7 @@ mod tests {
         fn hoverable_not_hovering() {
             // Setup app
             let mut app = App::new();
-            app.add_plugins((MinimalPlugins, test::plugin))
+            app.add_plugins((MinimalPlugins, test::plugin, image_scaling::plugin))
                 .init_resource::<MouseCoordinates>();
 
             // Add mouse coordinates Resource
@@ -144,7 +145,12 @@ mod tests {
             // Add Hoverable entity that is Hovered
             let entity_id = app
                 .world_mut()
-                .spawn((Hoverable, image, Transform::from_xyz(0., 0., 0.)))
+                .spawn((
+                    Hoverable,
+                    image,
+                    ScaledSize::default(),
+                    Transform::from_xyz(0., 0., 0.),
+                ))
                 .id();
 
             // Add two systems: one is a test system that checks asset is loaded, second is checking if Image asset is hovered
@@ -177,7 +183,7 @@ mod tests {
         fn not_hoverable_hovering() {
             // Setup app
             let mut app = App::new();
-            app.add_plugins((MinimalPlugins, test::plugin))
+            app.add_plugins((MinimalPlugins, test::plugin, image_scaling::plugin))
                 .init_resource::<MouseCoordinates>();
 
             // Add mouse coordinates Resource
@@ -192,7 +198,11 @@ mod tests {
             // Add Hoverable entity that is Hovered
             let entity_id = app
                 .world_mut()
-                .spawn((image, Transform::from_xyz(0., 0., 0.)))
+                .spawn((
+                    image,
+                    ScaledSize::default(),
+                    Transform::from_xyz(0., 0., 0.),
+                ))
                 .id();
 
             // Add two systems: one is a test system that checks asset is loaded, second is checking if Image asset is hovered
@@ -225,7 +235,7 @@ mod tests {
         fn not_hoverable_not_hovering() {
             // Setup app
             let mut app = App::new();
-            app.add_plugins((MinimalPlugins, test::plugin))
+            app.add_plugins((MinimalPlugins, test::plugin, image_scaling::plugin))
                 .init_resource::<MouseCoordinates>();
 
             // Add mouse coordinates Resource
@@ -240,7 +250,11 @@ mod tests {
             // Add Hoverable entity that is Hovered
             let entity_id = app
                 .world_mut()
-                .spawn((image, Transform::from_xyz(0., 0., 0.)))
+                .spawn((
+                    image,
+                    ScaledSize::default(),
+                    Transform::from_xyz(0., 0., 0.),
+                ))
                 .id();
 
             // Add two systems: one is a test system that checks asset is loaded, second is checking if Image asset is hovered

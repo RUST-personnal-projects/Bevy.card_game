@@ -8,6 +8,7 @@ use bevy::{
 use crate::dev_tools::DevState;
 
 use super::hover::Hovered;
+use crate::utils::image_scaling::ScaledSize;
 
 #[derive(Component, Debug, Default)]
 pub(crate) struct Clickable;
@@ -22,23 +23,17 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 #[cfg(feature = "dev")]
-fn gizmo(
-    mut gizmos: Gizmos,
-    hoverables_query: Query<(&Handle<Image>, &Transform), With<Clicked>>,
-    assets: Res<Assets<Image>>,
-) {
-    for (image, transform) in hoverables_query.iter() {
-        if let Some(image) = assets.get(image) {
-            let width = image.width() as f32 + 2.;
-            let height = image.height() as f32 + 2.;
+fn gizmo(mut gizmos: Gizmos, hoverables_query: Query<(&ScaledSize, &Transform), With<Clicked>>) {
+    for (scaled_size, transform) in hoverables_query.iter() {
+        let width = scaled_size.width() + 2.;
+        let height = scaled_size.height() + 2.;
 
-            gizmos.rect_2d(
-                transform.translation.truncate(),
-                transform.rotation.z,
-                Vec2::new(width, height),
-                css::RED,
-            );
-        }
+        gizmos.rect_2d(
+            transform.translation.truncate(),
+            transform.rotation.z,
+            Vec2::new(width, height),
+            css::RED,
+        );
     }
 }
 
