@@ -1,7 +1,6 @@
 use bevy::{asset::AssetMetaCheck, prelude::*};
-use game::card::{Card, CardColor, ColoredVariant, WildVariant};
-use utils::mouse::MouseInteractionBundle;
 
+mod dev_tools;
 mod game;
 mod utils;
 
@@ -9,12 +8,21 @@ pub struct AppPlugin;
 
 impl Plugin for AppPlugin {
     fn build(&self, app: &mut App) {
+        // Order new `AppStep` variants by adding them here:
+        app.configure_sets(
+            Update,
+            (AppSet::TickTimers, AppSet::RecordInput, AppSet::Update).chain(),
+        );
+
+        // Spawn the main camera.
+        app.add_systems(Startup, spawn_camera);
+
         // Bevy plugins
         app.add_plugins(
             DefaultPlugins
                 .set(WindowPlugin {
                     primary_window: Window {
-                        title: "bevy_quickstart".to_string(),
+                        title: "card game".to_string(),
                         canvas: Some("#bevy".to_string()),
                         fit_canvas_to_parent: true,
                         prevent_default_event_handling: true,
@@ -36,42 +44,35 @@ impl Plugin for AppPlugin {
         // Project Plugins
         app.add_plugins((utils::plugin, game::plugin));
 
-        // TODO: remove this setup once scene are loaded automatically
-        app.add_systems(Startup, setup);
+        // Enable dev tools for dev builds.
+        #[cfg(feature = "dev")]
+        app.add_plugins(dev_tools::plugin);
     }
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn(Camera2dBundle::default());
+/// High-level groupings of systems for the app in the `Update` schedule.
+/// When adding a new variant, make sure to order it in the `configure_sets`
+/// call above.
+#[derive(SystemSet, Debug, Clone, Copy, Eq, PartialEq, Hash, PartialOrd, Ord)]
+enum AppSet {
+    /// Tick timers.
+    TickTimers,
+    /// Record player input.
+    RecordInput,
+    /// Do everything else (consider splitting this into further variants).
+    Update,
+}
 
-    for (card, transform) in [
-        (
-            Card::Colored(ColoredVariant::Number(9), CardColor::Blue),
-            Transform::from_xyz(-300., 0., 0.),
-        ),
-        (
-            Card::Wild(WildVariant::ColorChange),
-            Transform::from_xyz(-100., 0., 0.),
-        ),
-        (
-            Card::Wild(WildVariant::PlusFour),
-            Transform::from_xyz(100., 0., 0.),
-        ),
-        (
-            Card::Colored(ColoredVariant::Invert, CardColor::Yellow),
-            Transform::from_xyz(300., 0., 0.),
-        ),
-    ] {
-        let texture = asset_server.load(card.texture_path());
-
-        commands.spawn((
-            card,
-            SpriteBundle {
-                texture,
-                transform,
-                ..default()
-            },
-            MouseInteractionBundle::default(),
-        ));
-    }
+fn spawn_camera(mut commands: Commands) {
+    commands.spawn((
+        Name::new("Camera"),
+        Camera2dBundle::default(),
+        // Render all UI to this camera.
+        // Not strictly necessary since we only use one camera,
+        // but if we don't use this component, our UI will disappear as soon
+        // as we add another camera. This includes indirect ways of adding cameras like using
+        // [ui node outlines](https://bevyengine.org/news/bevy-0-14/#ui-node-outline-gizmos)
+        // for debugging. So it's good to have this here for future-proofing.
+        IsDefaultUiCamera,
+    ));
 }

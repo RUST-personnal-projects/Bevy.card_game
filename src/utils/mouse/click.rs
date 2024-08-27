@@ -5,7 +5,7 @@ use bevy::{
 };
 
 #[cfg(feature = "dev")]
-use crate::utils::dev_tools::DevState;
+use crate::dev_tools::DevState;
 
 use super::hover::Hovered;
 

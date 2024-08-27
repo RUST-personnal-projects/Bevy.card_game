@@ -2,32 +2,82 @@
 
 use bevy::prelude::*;
 
-// use super::Screen;
-// use crate::game::{
-//     assets::SoundtrackKey, audio::soundtrack::PlaySoundtrack, spawn::level::SpawnLevel,
-// };
+use crate::{
+    game::{
+        card::{Card, CardColor, ColoredVariant, WildVariant, CARD_BACK_PATH},
+        deck::{DeckMarker, NodeDeckMarker, TextDeckMarker},
+    },
+    utils::mouse::MouseInteractionBundle,
+};
 
-pub(super) fn plugin(_app: &mut App) {
-    // app.add_systems(OnEnter(Screen::Playing), enter_playing);
-    // app.add_systems(OnExit(Screen::Playing), exit_playing);
+use bevy::color::palettes::css;
 
-    // app.add_systems(
-    //     Update,
-    //     return_to_title_screen
-    //         .run_if(in_state(Screen::Playing).and_then(input_just_pressed(KeyCode::Escape))),
-    // );
+use crate::utils::mouse::{click::Clickable, hover::Hoverable};
+
+use super::Screen;
+
+pub(super) fn plugin(app: &mut App) {
+    app.add_systems(OnEnter(Screen::Playing), enter_playing);
 }
 
-// fn enter_playing(mut commands: Commands) {
-//     commands.trigger(SpawnLevel);
-//     commands.trigger(PlaySoundtrack::Key(SoundtrackKey::Gameplay));
-// }
+fn enter_playing(mut commands: Commands, asset_server: Res<AssetServer>) {
+    for (card, transform) in [
+        (
+            Card::Colored(ColoredVariant::Number(9), CardColor::Blue),
+            Transform::from_xyz(-300., 0., 0.),
+        ),
+        (
+            Card::Wild(WildVariant::ColorChange),
+            Transform::from_xyz(-100., 0., 0.),
+        ),
+        (
+            Card::Wild(WildVariant::PlusFour),
+            Transform::from_xyz(100., 0., 0.),
+        ),
+        (
+            Card::Colored(ColoredVariant::Invert, CardColor::Yellow),
+            Transform::from_xyz(300., 0., 0.),
+        ),
+    ] {
+        let texture = asset_server.load(card.texture_path());
 
-// fn exit_playing(mut commands: Commands) {
-//     // We could use [`StateScoped`] on the sound playing entities instead.
-//     commands.trigger(PlaySoundtrack::Disable);
-// }
+        commands.spawn((
+            card,
+            SpriteBundle {
+                texture,
+                transform,
+                ..default()
+            },
+            MouseInteractionBundle::default(),
+        ));
+    }
 
-// fn return_to_title_screen(mut next_screen: ResMut<NextState<Screen>>) {
-//     next_screen.set(Screen::Title);
-// }
+    // Spawn a card back sprite representing the deck and an UI node containing text to show how many cards are left
+    // UI node
+    commands
+        .spawn((
+            NodeBundle {
+                background_color: BackgroundColor(css::DARK_GRAY.into()),
+                border_color: BorderColor(Color::BLACK),
+                visibility: Visibility::Hidden,
+                ..default()
+            },
+            NodeDeckMarker,
+        ))
+        .with_children(|builder| {
+            builder.spawn((TextBundle::default(), TextDeckMarker));
+        });
+
+    let texture = asset_server.load(CARD_BACK_PATH);
+    // Card back
+    commands.spawn((
+        SpriteBundle {
+            transform: Transform::from_xyz(0., 300., 0.),
+            texture,
+            ..default()
+        },
+        DeckMarker,
+        Hoverable,
+        Clickable,
+    ));
+}

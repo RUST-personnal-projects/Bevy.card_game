@@ -27,8 +27,6 @@ where
 }
 
 impl<K: AssetKey> HandleMap<K> {
-    // TODO: call this function from loading screen in order to actually load assets
-    #[allow(dead_code)]
     pub fn all_loaded(&self, asset_server: &AssetServer) -> bool {
         self.values()
             .all(|x| asset_server.is_loaded_with_dependencies(x))

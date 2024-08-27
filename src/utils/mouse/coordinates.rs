@@ -1,7 +1,7 @@
 use bevy::{input::mouse::MouseMotion, prelude::*};
 
 #[cfg(feature = "dev")]
-use crate::utils::dev_tools::{DebugViewOrderSet, DevState};
+use crate::dev_tools::{DebugViewOrderSet, DevState};
 
 #[derive(Resource, Default)]
 pub(crate) struct MouseCoordinates(pub Vec2);
@@ -63,7 +63,7 @@ fn update_ui_coordinates(
 mod debug {
     use super::*;
 
-    use crate::utils::dev_tools::DebugNodeMarker;
+    use crate::dev_tools::DebugNodeMarker;
 
     #[derive(Component)]
     pub(super) struct MouseCoordinatesMarker;

@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-pub(crate) const CARD_BACK_PATH: &str = "cards/card_back.png";
+pub(crate) const CARD_BACK_PATH: &str = "images/cards/card_back.png";
 
 #[derive(Debug, Clone, Copy, PartialEq, Component, Hash, Eq, Reflect)]
 pub(crate) enum CardColor {
@@ -115,22 +115,13 @@ impl Card {
     pub(crate) fn texture_path(self) -> String {
         match self {
             Self::Colored(_, color) => {
-                format!("cards/{}/{}.png", String::from(color), String::from(self))
+                format!(
+                    "images/cards/{}/{}.png",
+                    String::from(color),
+                    String::from(self)
+                )
             }
-            Self::Wild(_) => format!("cards/{}.png", String::from(self)),
+            Self::Wild(_) => format!("images/cards/{}.png", String::from(self)),
         }
     }
 }
-
-// #[derive(Bundle, Debug, Clone)]
-// pub struct CardBundle {
-//     pub color: CardColor,
-//     pub variant: CardVariant,
-// }
-
-// impl CardBundle {
-//     pub fn texture_path(color: CardColor, variant: CardVariant) -> String {
-//         let color = String::from(color);
-//         format!("cards/{}/{}_{}.png", color, String::from(variant), color)
-//     }
-// }
