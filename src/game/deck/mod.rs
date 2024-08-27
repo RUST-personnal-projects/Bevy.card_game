@@ -52,7 +52,7 @@ fn fill_deck(mut commands: Commands) {
 }
 
 fn is_deck_hovered(deck_hovered_query: Query<(), (With<DeckMarker>, With<Hovered>)>) -> bool {
-    deck_hovered_query.iter().count() == 1
+    deck_hovered_query.get_single().is_ok()
 }
 
 /// Make the node showing how many cards left in deck and update it's style position, update text inside node
