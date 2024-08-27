@@ -3,7 +3,7 @@ use bevy::prelude::*;
 pub(crate) const CARD_BACK_PATH: &str = "images/cards/card_back.png";
 
 #[derive(Debug, Clone, Copy, PartialEq, Component, Hash, Eq, Reflect)]
-pub(crate) enum CardColor {
+pub enum CardColor {
     Yellow,
     Red,
     Blue,
@@ -28,7 +28,7 @@ impl CardColor {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Component, Hash, Eq, Reflect)]
-pub(crate) enum ColoredVariant {
+pub enum ColoredVariant {
     Number(u8),
     Invert,
     Block,
@@ -54,7 +54,7 @@ impl ColoredVariant {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Component, Hash, Eq, Reflect)]
-pub(crate) enum WildVariant {
+pub enum WildVariant {
     PlusFour,
     ColorChange,
 }
@@ -75,7 +75,7 @@ impl WildVariant {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Component, Hash, Eq, Reflect)]
-pub(crate) enum Card {
+pub enum Card {
     Colored(ColoredVariant, CardColor),
     Wild(WildVariant),
 }

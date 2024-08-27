@@ -1,5 +1,4 @@
 pub(crate) mod asset_loading;
-pub(crate) mod count_entities;
 
 use asset_loading::TestAssetLoadingState;
 use bevy::{prelude::*, render::texture::ImageLoader, state::app::StatesPlugin};

@@ -4,8 +4,10 @@ use bevy::prelude::*;
 
 pub(super) use generator::DeckGenerator;
 
-use super::{card::Card, screen::Screen};
-use crate::utils::mouse::{coordinates::UIMouseCoordinates, hover::Hovered};
+use crate::{
+    game::{card::Card, screen::Screen},
+    utils::mouse::{coordinates::UIMouseCoordinates, hover::Hovered},
+};
 
 #[derive(Component, Debug, Clone, PartialEq)]
 pub struct Deck(Vec<Card>);
@@ -31,7 +33,7 @@ pub(crate) struct DeckMarker;
 const DEFAULT_OFFSET: f32 = 15.;
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(Startup, fill_deck).add_systems(
+    app.add_systems(
         Update,
         (
             show_deck_data.run_if(is_deck_hovered),
@@ -39,16 +41,6 @@ pub(super) fn plugin(app: &mut App) {
         )
             .run_if(in_state(Screen::Playing)),
     );
-}
-
-// Spawn one invisible entity per card in the deck
-// TODO: rewrite this so that we spawn the deck instead of a set of cards
-fn fill_deck(mut commands: Commands) {
-    let deck = Deck::default();
-
-    deck.0.into_iter().for_each(|card| {
-        commands.spawn((card, InDeckMarker));
-    });
 }
 
 fn is_deck_hovered(deck_hovered_query: Query<(), (With<DeckMarker>, With<Hovered>)>) -> bool {
@@ -85,29 +77,6 @@ fn hide_deck_data(mut node_query: Query<&mut Visibility, With<NodeDeckMarker>>) 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    mod fill_deck {
-        use crate::utils::test::count_entities::{count_entities, EntityCount};
-
-        use super::*;
-
-        #[test]
-        fn spawned_all_entities() {
-            let deck_size = Deck::default().0.len();
-
-            let mut app = App::new();
-
-            app.add_systems(Startup, fill_deck)
-                .add_systems(Update, count_entities::<InDeckMarker>)
-                .init_resource::<EntityCount>();
-
-            app.update();
-
-            let entities_count = app.world().resource::<EntityCount>();
-
-            assert_eq!(entities_count.0, deck_size);
-        }
-    }
 
     mod is_deck_hovered {
         use super::*;
