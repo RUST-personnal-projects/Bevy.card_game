@@ -1,6 +1,6 @@
 use bevy::{prelude::*, utils::HashMap};
 
-use crate::game::card::{Card, CARD_BACK_PATH};
+use crate::entities::cards::{Card, CARD_BACK_PATH};
 
 use super::{AssetKey, HandleMap};
 

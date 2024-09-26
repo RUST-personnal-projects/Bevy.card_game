@@ -1,7 +1,9 @@
 use bevy::{asset::AssetMetaCheck, prelude::*};
 
+#[cfg(feature = "dev")]
 mod dev_tools;
-mod game;
+mod entities;
+mod screens;
 mod utils;
 
 pub struct AppPlugin;
@@ -42,7 +44,7 @@ impl Plugin for AppPlugin {
         );
 
         // Project Plugins
-        app.add_plugins((utils::plugin, game::plugin));
+        app.add_plugins((utils::plugin, screens::plugin, entities::plugin));
 
         // Enable dev tools for dev builds.
         #[cfg(feature = "dev")]

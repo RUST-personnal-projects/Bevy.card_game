@@ -1,0 +1,5 @@
+use bevy::prelude::*;
+
+pub(super) fn plugin(_app: &mut App) {
+    // app.add_systems(Update, (,).run_if(in_state(Screen::Playing)),);
+}

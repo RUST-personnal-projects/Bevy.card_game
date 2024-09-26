@@ -1,6 +1,6 @@
 use rand::seq::SliceRandom;
 
-use crate::game::card::{Card, CardColor, ColoredVariant, WildVariant};
+use crate::entities::cards::{Card, CardColor, ColoredVariant, WildVariant};
 
 pub struct DeckGenerator {
     number0: u8,

@@ -5,11 +5,12 @@ use bevy::prelude::*;
 pub(super) use generator::DeckGenerator;
 
 use crate::{
-    game::{card::Card, screen::Screen},
+    entities::cards::Card,
+    screens::Screen,
     utils::mouse::{coordinates::UIMouseCoordinates, hover::Hovered},
 };
 
-#[derive(Component, Debug, Clone, PartialEq)]
+#[derive(Component, Debug, Clone, PartialEq, Deref)]
 pub struct Deck(Vec<Card>);
 
 impl Default for Deck {
@@ -17,9 +18,6 @@ impl Default for Deck {
         Self(DeckGenerator::default().generate_deck())
     }
 }
-
-#[derive(Component)]
-struct InDeckMarker;
 
 #[derive(Component)]
 pub(crate) struct NodeDeckMarker;
@@ -52,12 +50,14 @@ fn show_deck_data(
     mut node_query: Query<(&mut Visibility, &mut Style), With<NodeDeckMarker>>,
     mut text_query: Query<&mut Text, With<TextDeckMarker>>,
     ui_mouse_coordinates: Res<UIMouseCoordinates>,
-    deck_query: Query<(), With<InDeckMarker>>,
+    deck_query: Query<&Deck, With<DeckMarker>>,
 ) {
     let (mut visibility, mut style) = node_query.single_mut();
     let mut text = text_query.single_mut();
 
-    let len = deck_query.iter().count();
+    // let deck = deck_query.single();
+
+    let len = deck_query.single().len();
 
     let UIMouseCoordinates(Vec2 { x, y }) = ui_mouse_coordinates.into_inner();
     style.left = Val::Px(*x + DEFAULT_OFFSET);
@@ -147,6 +147,7 @@ mod tests {
                 .world_mut()
                 .spawn((TextBundle::default(), TextDeckMarker))
                 .id();
+            app.world_mut().spawn((Deck(Vec::new()), DeckMarker));
             app.world_mut().entity_mut(node).add_child(text);
 
             app.update();

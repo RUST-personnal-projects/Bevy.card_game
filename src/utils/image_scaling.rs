@@ -4,6 +4,8 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, update_scaled_size);
 }
 
+/// This component allows any entity with [`Transform`] and [`Handle<Image>`] components to automatically have access to a scaled [`Vec2`] of it's size
+/// Important: this component is not here to ensure scale is respected, it just helps calculating image size depending on transform scale
 #[derive(Component, Debug, Default, Deref, DerefMut)]
 pub(crate) struct ScaledSize(pub Vec2);
 

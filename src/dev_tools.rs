@@ -2,7 +2,7 @@
 
 use bevy::{color, dev_tools::states::log_transitions, prelude::*};
 
-use crate::game::screen::Screen;
+use crate::screens::Screen;
 
 #[derive(States, Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 // #[source(Screen = Screen::Playing)]

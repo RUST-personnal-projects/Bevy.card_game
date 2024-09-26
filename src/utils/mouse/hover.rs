@@ -1,4 +1,4 @@
-use bevy::{color::palettes::css, prelude::*};
+use bevy::prelude::*;
 
 #[cfg(feature = "dev")]
 use crate::dev_tools::DevState;
@@ -23,6 +23,8 @@ fn gizmo(
     mut gizmos: Gizmos,
     hoverables_query: Query<(&ScaledSize, &Transform), (With<Hovered>, Without<Clicked>)>,
 ) {
+    use bevy::color::palettes::css;
+
     for (scaled_size, transform) in hoverables_query.iter() {
         let width = scaled_size.width() + 2.;
         let height = scaled_size.height() + 2.;
@@ -68,7 +70,7 @@ mod tests {
         use test::asset_loading::{check_loaded, is_asset_loaded, TestAssetLoadingState};
 
         use crate::{
-            game::card::CARD_BACK_PATH,
+            entities::cards::CARD_BACK_PATH,
             utils::{image_scaling, mouse::coordinates::MouseCoordinates},
         };
 

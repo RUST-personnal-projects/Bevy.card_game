@@ -1,14 +1,12 @@
 use bevy::{
-    color::palettes::css,
     input::{mouse::MouseButtonInput, ButtonState},
     prelude::*,
 };
 
 #[cfg(feature = "dev")]
-use crate::dev_tools::DevState;
+use crate::{dev_tools::DevState, utils::image_scaling::ScaledSize};
 
 use super::hover::Hovered;
-use crate::utils::image_scaling::ScaledSize;
 
 #[derive(Component, Debug, Default)]
 pub(crate) struct Clickable;
@@ -24,6 +22,8 @@ pub(super) fn plugin(app: &mut App) {
 
 #[cfg(feature = "dev")]
 fn gizmo(mut gizmos: Gizmos, hoverables_query: Query<(&ScaledSize, &Transform), With<Clicked>>) {
+    use bevy::color::palettes::css;
+
     for (scaled_size, transform) in hoverables_query.iter() {
         let width = scaled_size.width() + 2.;
         let height = scaled_size.height() + 2.;
