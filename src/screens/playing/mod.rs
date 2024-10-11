@@ -1,6 +1,6 @@
 //! The screen state for the main game loop.
-pub(crate) mod game_loop;
-pub(crate) mod setup;
+pub mod game_loop;
+pub mod setup;
 
 use bevy::prelude::*;
 

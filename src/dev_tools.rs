@@ -6,19 +6,19 @@ use crate::screens::Screen;
 
 #[derive(States, Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 // #[source(Screen = Screen::Playing)]
-pub(crate) enum DevState {
+pub enum DevState {
     #[default]
     Off,
     On,
 }
 
 #[derive(Component)]
-pub(crate) struct DebugNodeMarker;
+pub struct DebugNodeMarker;
 
 // This system set serves as a way to choose in which order dev info are printed
 // When adding a new member to the set, don't forget to also add it to the configure_sets down bellow
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
-pub(crate) enum DebugViewOrderSet {
+pub enum DebugViewOrderSet {
     DevState,
     Coordinates,
     Debug,

@@ -7,10 +7,10 @@ use super::{click::Clicked, coordinates::MouseCoordinates};
 use crate::utils::image_scaling::ScaledSize;
 
 #[derive(Component, Debug, Default)]
-pub(crate) struct Hoverable;
+pub struct Hoverable;
 
 #[derive(Component, Debug)]
-pub(crate) struct Hovered;
+pub struct Hovered;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, is_hovered);

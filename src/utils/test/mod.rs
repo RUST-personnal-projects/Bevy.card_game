@@ -1,9 +1,9 @@
-pub(crate) mod asset_loading;
+pub mod asset_loading;
 
 use asset_loading::TestAssetLoadingState;
 use bevy::{prelude::*, render::texture::ImageLoader, state::app::StatesPlugin};
 
-pub(crate) fn plugin(app: &mut App) {
+pub fn plugin(app: &mut App) {
     // During tests, StatesPlugin might not have been added
     if !app.is_plugin_added::<StatesPlugin>() {
         app.add_plugins(StatesPlugin);

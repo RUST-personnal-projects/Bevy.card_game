@@ -1,4 +1,4 @@
-pub(crate) mod images;
+pub mod images;
 
 use bevy::{prelude::*, utils::HashMap};
 

@@ -1,4 +1,4 @@
-pub(crate) mod generator;
+pub mod generator;
 
 use bevy::prelude::*;
 
@@ -20,13 +20,13 @@ impl Default for Deck {
 }
 
 #[derive(Component)]
-pub(crate) struct NodeDeckMarker;
+pub struct NodeDeckMarker;
 
 #[derive(Component)]
-pub(crate) struct TextDeckMarker;
+pub struct TextDeckMarker;
 
 #[derive(Component)]
-pub(crate) struct DeckMarker;
+pub struct DeckMarker;
 
 const DEFAULT_OFFSET: f32 = 15.;
 
@@ -54,8 +54,6 @@ fn show_deck_data(
 ) {
     let (mut visibility, mut style) = node_query.single_mut();
     let mut text = text_query.single_mut();
-
-    // let deck = deck_query.single();
 
     let len = deck_query.single().len();
 

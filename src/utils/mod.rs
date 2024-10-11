@@ -1,10 +1,10 @@
-pub(crate) mod assets;
-pub(crate) mod image_scaling;
-pub(crate) mod mouse;
-pub(crate) mod ui;
+pub mod assets;
+pub mod image_scaling;
+pub mod mouse;
+pub mod ui;
 
 #[cfg(test)]
-pub(crate) mod test;
+pub mod test;
 
 use bevy::prelude::*;
 use image_scaling::ScaledSize;
@@ -20,7 +20,7 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 #[derive(Bundle, Debug, Default)]
-pub(crate) struct UtilsBundle {
+pub struct UtilsBundle {
     mouse: MouseInteractionBundle,
     scaled_size: ScaledSize,
 }

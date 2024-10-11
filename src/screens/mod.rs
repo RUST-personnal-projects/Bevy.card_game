@@ -1,6 +1,6 @@
-pub(crate) mod loading;
-pub(crate) mod playing;
-pub(crate) mod splash;
+pub mod loading;
+pub mod playing;
+pub mod splash;
 
 use bevy::prelude::*;
 

@@ -9,10 +9,10 @@ use crate::{dev_tools::DevState, utils::image_scaling::ScaledSize};
 use super::hover::Hovered;
 
 #[derive(Component, Debug, Default)]
-pub(crate) struct Clickable;
+pub struct Clickable;
 
 #[derive(Component, Debug)]
-pub(crate) struct Clicked;
+pub struct Clicked;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, (is_clicked, is_released));
