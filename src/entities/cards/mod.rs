@@ -1,8 +1,10 @@
-pub(crate) mod deck;
+pub mod deck;
+pub mod graveyard;
+pub mod hand;
 
 use bevy::prelude::*;
 
-pub(crate) const CARD_BACK_PATH: &str = "images/cards/card_back.png";
+pub const CARD_BACK_PATH: &str = "images/cards/card_back.png";
 
 pub(super) fn plugin(app: &mut App) {
     app.add_plugins((deck::plugin,));
@@ -29,7 +31,7 @@ impl Card {
     /// Automatically retrieve a list of all possible variations of cards
     ///
     /// Possible usage: get a list of all different card assets to load
-    pub(crate) fn all_variations() -> Vec<Self> {
+    pub fn all_variations() -> Vec<Self> {
         let colors = CardColor::all_variations();
         let colored_variants = ColoredVariant::all_variations();
         let wild_variants = WildVariant::all_variations();
@@ -46,7 +48,7 @@ impl Card {
         [colored, wild].concat()
     }
 
-    pub(crate) fn texture_path(self) -> String {
+    pub fn texture_path(self) -> String {
         match self {
             Self::Colored(_, color) => {
                 format!(
@@ -60,7 +62,7 @@ impl Card {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Component, Hash, Eq, Reflect)]
+#[derive(Debug, Clone, Copy, PartialEq, Hash, Eq, Reflect)]
 pub enum CardColor {
     Yellow,
     Red,
@@ -80,12 +82,12 @@ impl From<CardColor> for String {
 }
 
 impl CardColor {
-    pub(crate) fn all_variations() -> Vec<Self> {
+    pub fn all_variations() -> Vec<Self> {
         vec![Self::Yellow, Self::Red, Self::Blue, Self::Green]
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Component, Hash, Eq, Reflect)]
+#[derive(Debug, Clone, Copy, PartialEq, Hash, Eq, Reflect)]
 pub enum ColoredVariant {
     Number(u8),
     Invert,
@@ -105,13 +107,13 @@ impl From<ColoredVariant> for String {
 }
 
 impl ColoredVariant {
-    pub(crate) fn all_variations() -> Vec<Self> {
+    pub fn all_variations() -> Vec<Self> {
         let numbers: Vec<Self> = (0..10).map(Self::Number).collect();
         [vec![Self::Invert, Self::Block, Self::PlusTwo], numbers].concat()
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Component, Hash, Eq, Reflect)]
+#[derive(Debug, Clone, Copy, PartialEq, Hash, Eq, Reflect)]
 pub enum WildVariant {
     PlusFour,
     ColorChange,
@@ -127,7 +129,7 @@ impl From<WildVariant> for String {
 }
 
 impl WildVariant {
-    pub(crate) fn all_variations() -> Vec<Self> {
+    pub fn all_variations() -> Vec<Self> {
         vec![Self::PlusFour, Self::ColorChange]
     }
 }
