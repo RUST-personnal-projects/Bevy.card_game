@@ -26,9 +26,7 @@ pub struct FixedScale {
 }
 
 impl FixedScale {
-    pub const DECK: Self = Self::with_ratio(0.1, 0.2);
-    pub const GRAVEYARD: Self = Self::with_ratio(0.1, 0.2);
-    pub const HAND: Self = Self::with_ratio(0.8, 0.2);
+    pub const CARD: Self = Self::with_ratio(0.19, 0.19);
 
     const fn with_ratio(x_ratio: f32, y_ratio: f32) -> Self {
         Self {

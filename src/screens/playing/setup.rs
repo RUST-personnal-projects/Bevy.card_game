@@ -50,7 +50,7 @@ fn spawn_deck(mut commands: Commands, image_handles: Res<HandleMap<ImageKey>>) {
         UtilsBundle::default(),
         Deck::default(),
         FixedPosition::DECK,
-        FixedScale::DECK,
+        FixedScale::CARD,
         DeckMarker,
     ));
 }
@@ -68,7 +68,7 @@ fn spawn_graveyard(mut commands: Commands, image_handles: Res<HandleMap<ImageKey
         },
         UtilsBundle::default(),
         FixedPosition::GRAVEYARD,
-        FixedScale::GRAVEYARD,
+        FixedScale::CARD,
     ));
 }
 
@@ -80,11 +80,11 @@ fn spawn_hand(mut commands: Commands, image_handles: Res<HandleMap<ImageKey>>) {
     // Spawn the game deck including it's sprite
     commands.spawn((
         SpriteBundle {
-            texture: texture_handle.clone_weak(),
+            texture: texture_handle.clone(),
             ..default()
         },
         UtilsBundle::default(),
         FixedPosition::HAND,
-        FixedScale::HAND,
+        FixedScale::CARD,
     ));
 }
