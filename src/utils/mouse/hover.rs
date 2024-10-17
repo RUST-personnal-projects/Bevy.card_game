@@ -1,7 +1,9 @@
-use bevy::prelude::*;
+use std::any::TypeId;
 
 #[cfg(feature = "dev")]
 use crate::dev_tools::DevState;
+use bevy::{ecs::component::ComponentId, prelude::*, ptr::PtrMut, reflect::ReflectFromPtr};
+use pretty_type_name::pretty_type_name_str;
 
 use super::{click::Clicked, coordinates::MouseCoordinates};
 use crate::utils::image_scaling::ScaledSize;
@@ -15,7 +17,7 @@ pub struct Hovered;
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, is_hovered);
     #[cfg(feature = "dev")]
-    app.add_systems(Update, gizmo.run_if(in_state(DevState::On)));
+    app.add_systems(Update, (gizmo, entity_info).run_if(in_state(DevState::On)));
 }
 
 #[cfg(feature = "dev")]
@@ -35,6 +37,146 @@ fn gizmo(
             Vec2::new(width, height),
             css::GREEN,
         );
+    }
+}
+
+/// Credits go to [bevy_inspector_egui](https://crates.io/crates/bevy_inspector_egui) for the general idea how to use reflection to retrieve components
+#[cfg(feature = "dev")]
+fn entity_info(world: &mut World) {
+    let entities = world
+        .query_filtered::<Entity, Added<Hovered>>()
+        .iter(world)
+        .collect::<Vec<_>>();
+
+    for entity in entities {
+        if let Some(entity_ref) = world.get_entity(entity) {
+            let components = entity_components(entity_ref, world);
+            let mut components_logs = Vec::new();
+            for (component_id, component_type_id, name) in components {
+                if let Some(value) =
+                    component_reflected_value(entity_ref, world, component_id, component_type_id)
+                {
+                    components_logs.push(format!("{}: {}", name, log_reflect(value)));
+                }
+            }
+            info!("\n{}", components_logs.join("\n"));
+        }
+    }
+}
+
+/// Retrieves bevy [`ComponentId`] and std [`TypeId`] for every components attached to an entity
+#[cfg(feature = "dev")]
+fn entity_components(
+    entity_ref: EntityRef,
+    world: &World,
+) -> Vec<(ComponentId, Option<TypeId>, String)> {
+    entity_ref
+        .archetype()
+        .components()
+        .map(|component_id| {
+            let info = world.components().get_info(component_id).unwrap();
+
+            (
+                component_id,
+                info.type_id(),
+                pretty_type_name_str(info.name()),
+            )
+        })
+        .collect::<Vec<_>>()
+}
+
+/// Retrieves a component [`PtrMut`] and convert it to a [`Reflect`]
+#[cfg(feature = "dev")]
+fn component_reflected_value<'a>(
+    entity_ref: EntityRef,
+    world: &World,
+    component_id: ComponentId,
+    component_type_id: Option<TypeId>,
+) -> Option<&'a mut dyn Reflect> {
+    let value = entity_ref.get_by_id(component_id)?;
+    let type_id = component_type_id.unwrap();
+    let type_registry = world.resource::<AppTypeRegistry>().0.clone();
+    let type_registry = type_registry.read();
+    let registration = type_registry.get(type_id)?;
+    let reflect_from_ptr = registration.data::<ReflectFromPtr>().unwrap();
+
+    let ptr: PtrMut<'a> = unsafe { PtrMut::new(std::ptr::NonNull::new_unchecked(value.as_ptr())) };
+    // As stated in as_reflect_mut we need to ensure that the Ptr can be converted to something reflected by checking that they would have same [`TypeId`]
+    reflect_from_ptr
+        .type_id()
+        .eq(&type_id)
+        .then(|| unsafe { reflect_from_ptr.as_reflect_mut(ptr) })
+}
+
+/// Recursively retrieves any type of [`Reflect`] down to [`bevy::reflect::ReflectMut::Value`]
+#[cfg(feature = "dev")]
+fn log_reflect(value: &mut dyn Reflect) -> String {
+    match value.reflect_mut() {
+        bevy::reflect::ReflectMut::Struct(value) => {
+            let mut fields = Vec::new();
+            for i in 0..value.field_len() {
+                let field = log_reflect(value.field_at_mut(i).unwrap());
+                let name = value.name_at(i).unwrap();
+                fields.push(format!("{}: {}", name, field,));
+            }
+            fields.join(", ")
+        }
+        bevy::reflect::ReflectMut::TupleStruct(value) => {
+            let mut fields = Vec::new();
+            for i in 0..value.field_len() {
+                fields.push(log_reflect(value.field_mut(i).unwrap()));
+            }
+            format!("({})", fields.join(", "))
+        }
+        bevy::reflect::ReflectMut::Tuple(value) => {
+            let mut fields = Vec::new();
+            for i in 0..value.field_len() {
+                fields.push(log_reflect(value.field_mut(i).unwrap()));
+            }
+            format!("({})", fields.join(", "))
+        }
+        bevy::reflect::ReflectMut::List(value) => {
+            let mut fields = Vec::new();
+            for i in 0..value.len() {
+                fields.push(log_reflect(value.get_mut(i).unwrap()));
+            }
+            format!("[{}]", fields.join(", "))
+        }
+        bevy::reflect::ReflectMut::Array(value) => {
+            let mut fields = Vec::new();
+            for i in 0..value.len() {
+                fields.push(log_reflect(value.get_mut(i).unwrap()));
+            }
+            format!("[{}]", fields.join(", "))
+        }
+        bevy::reflect::ReflectMut::Map(value) => {
+            let mut fields = Vec::new();
+            for i in 0..value.len() {
+                let (key, value) = value.get_at_mut(i).unwrap();
+                fields.push(format!("{:?}: {}", key, log_reflect(value)));
+            }
+            format!("[{}]", fields.join(", "))
+        }
+        bevy::reflect::ReflectMut::Enum(value) => match value.variant_type() {
+            bevy::reflect::VariantType::Struct => {
+                let mut fields = Vec::new();
+                for i in 0..value.field_len() {
+                    let field = log_reflect(value.field_at_mut(i).unwrap());
+                    let name = value.name_at(i).unwrap();
+                    fields.push(format!("{}: {}", name, field));
+                }
+                format!("{}: {}", value.variant_name(), fields.join(", "))
+            }
+            bevy::reflect::VariantType::Tuple => {
+                let mut fields = Vec::new();
+                for i in 0..value.field_len() {
+                    fields.push(log_reflect(value.field_at_mut(i).unwrap()));
+                }
+                format!("({})", fields.join(", "))
+            }
+            bevy::reflect::VariantType::Unit => value.variant_name().to_string(),
+        },
+        bevy::reflect::ReflectMut::Value(value) => format!("{:?}", value),
     }
 }
 
