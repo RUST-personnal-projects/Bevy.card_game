@@ -1,21 +1,43 @@
 pub mod generator;
 
+use std::collections::VecDeque;
+
 use bevy::prelude::*;
 
-pub(super) use generator::DeckGenerator;
-
 use crate::{
-    entities::cards::Card,
     screens::Screen,
     utils::mouse::{coordinates::UIMouseCoordinates, hover::Hovered},
 };
 
-#[derive(Component, Debug, Clone, PartialEq, Deref)]
-pub struct Deck(Vec<Card>);
+use super::{hand::Hand, InDeck, InHand};
 
-impl Default for Deck {
-    fn default() -> Self {
-        Self(DeckGenerator::default().generate_deck())
+#[derive(Component, Debug, Clone, PartialEq, Deref, DerefMut, Default)]
+pub struct Deck(pub VecDeque<Entity>);
+
+impl Deck {
+    pub fn draw_card(
+        &mut self,
+        cards_in_deck_query: &mut Query<&mut Visibility, With<InDeck>>,
+        hand_query: &mut Query<(Entity, &mut Hand), With<Hand>>,
+        commands: &mut Commands,
+    ) -> Result<(), String> {
+        // Get a random card to "draw"
+        let Some(card_entity) = self.0.pop_back() else {
+            return Err("Tried to remove card from empty deck".to_string());
+        };
+        // Move card entity from deck to hand collections
+        let (hand_entity, mut hand) = hand_query.single_mut();
+        let mut card_visibility = cards_in_deck_query
+            .get_mut(card_entity)
+            .map_err(|err| format!("Error retrieving card: {}", err))?;
+
+        // Move card to hand entities
+        commands.entity(card_entity).remove::<InDeck>();
+        *card_visibility = Visibility::Visible;
+        commands.entity(card_entity).set_parent(hand_entity);
+        hand.cards.push(card_entity);
+        commands.entity(card_entity).insert(InHand);
+        Ok(())
     }
 }
 
@@ -145,7 +167,7 @@ mod tests {
                 .world_mut()
                 .spawn((TextBundle::default(), TextDeckMarker))
                 .id();
-            app.world_mut().spawn((Deck(Vec::new()), DeckMarker));
+            app.world_mut().spawn((Deck(VecDeque::new()), DeckMarker));
             app.world_mut().entity_mut(node).add_child(text);
 
             app.update();

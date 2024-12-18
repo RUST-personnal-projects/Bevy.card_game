@@ -7,8 +7,17 @@ use bevy::prelude::*;
 pub const CARD_BACK_PATH: &str = "images/cards/card_back.png";
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_plugins((deck::plugin,));
+    app.add_plugins((deck::plugin, hand::plugin));
 }
+
+#[derive(Component)]
+pub struct InDeck;
+
+#[derive(Component)]
+pub struct _InGraveyard;
+
+#[derive(Component)]
+pub struct InHand;
 
 #[derive(Debug, Clone, Copy, PartialEq, Component, Hash, Eq, Reflect)]
 pub enum Card {
