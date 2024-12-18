@@ -1,4 +1,4 @@
-use bevy::{asset::AssetMetaCheck, prelude::*};
+use bevy::{asset::AssetMetaCheck, prelude::*, window::WindowResolution};
 
 #[cfg(feature = "dev")]
 mod dev_tools;
@@ -28,6 +28,7 @@ impl Plugin for AppPlugin {
                         canvas: Some("#bevy".to_string()),
                         fit_canvas_to_parent: true,
                         prevent_default_event_handling: true,
+                        resolution: WindowResolution::new(500., 500.),
                         ..default()
                     }
                     .into(),
