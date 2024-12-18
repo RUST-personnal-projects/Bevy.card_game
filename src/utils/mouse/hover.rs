@@ -23,7 +23,7 @@ pub(super) fn plugin(app: &mut App) {
 #[cfg(feature = "dev")]
 fn gizmo(
     mut gizmos: Gizmos,
-    hoverables_query: Query<(&ScaledSize, &Transform), (With<Hovered>, Without<Clicked>)>,
+    hoverables_query: Query<(&ScaledSize, &GlobalTransform), (With<Hovered>, Without<Clicked>)>,
 ) {
     use bevy::color::palettes::css;
 
@@ -31,12 +31,41 @@ fn gizmo(
         let width = scaled_size.width() + 2.;
         let height = scaled_size.height() + 2.;
 
+        let (_, rotation, translation) = transform.to_scale_rotation_translation();
+
         gizmos.rect_2d(
-            transform.translation.truncate(),
-            transform.rotation.z,
+            translation.truncate(),
+            rotation.z,
             Vec2::new(width, height),
             css::GREEN,
         );
+    }
+}
+
+fn is_hovered(
+    hoverables_query: Query<
+        (Entity, &ScaledSize, &GlobalTransform),
+        (With<Hoverable>, Without<Clicked>),
+    >,
+    mouse: Res<MouseCoordinates>,
+    mut commands: Commands,
+) {
+    for (entity, scaled_size, transform) in hoverables_query.iter() {
+        let half_width = scaled_size.width() / 2.;
+        let half_height = scaled_size.height() / 2.;
+
+        let translation = transform.translation();
+
+        let min_x = translation.x - half_width;
+        let max_x = translation.x + half_width;
+        let min_y = translation.y - half_height;
+        let max_y = translation.y + half_height;
+
+        if mouse.0.x >= min_x && mouse.0.x <= max_x && mouse.0.y >= min_y && mouse.0.y <= max_y {
+            commands.entity(entity).insert(Hovered);
+        } else {
+            commands.entity(entity).remove::<Hovered>();
+        }
     }
 }
 
@@ -52,14 +81,20 @@ fn entity_info(world: &mut World) {
         if let Some(entity_ref) = world.get_entity(entity) {
             let components = entity_components(entity_ref, world);
             let mut components_logs = Vec::new();
+            let mut components_names = Vec::new();
             for (component_id, component_type_id, name) in components {
+                components_names.push(name.clone());
                 if let Some(value) =
                     component_reflected_value(entity_ref, world, component_id, component_type_id)
                 {
                     components_logs.push(format!("{}: {}", name, log_reflect(value)));
                 }
             }
-            info!("\n{}", components_logs.join("\n"));
+            info!(
+                "\n{}\n{}",
+                components_names.join(", "),
+                components_logs.join("\n")
+            );
         }
     }
 }
@@ -94,13 +129,13 @@ fn component_reflected_value<'a>(
     component_type_id: Option<TypeId>,
 ) -> Option<&'a mut dyn Reflect> {
     let value = entity_ref.get_by_id(component_id)?;
-    let type_id = component_type_id.unwrap();
+    let type_id = component_type_id?;
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
     let registration = type_registry.get(type_id)?;
     let reflect_from_ptr = registration.data::<ReflectFromPtr>().unwrap();
 
-    let ptr: PtrMut<'a> = unsafe { PtrMut::new(std::ptr::NonNull::new_unchecked(value.as_ptr())) };
+    let ptr: PtrMut<'a> = unsafe { PtrMut::new(std::ptr::NonNull::new(value.as_ptr())?) };
     // As stated in as_reflect_mut we need to ensure that the Ptr can be converted to something reflected by checking that they would have same [`TypeId`]
     reflect_from_ptr
         .type_id()
@@ -177,28 +212,6 @@ fn log_reflect(value: &mut dyn Reflect) -> String {
             bevy::reflect::VariantType::Unit => value.variant_name().to_string(),
         },
         bevy::reflect::ReflectMut::Value(value) => format!("{:?}", value),
-    }
-}
-
-fn is_hovered(
-    hoverables_query: Query<(Entity, &ScaledSize, &Transform), (With<Hoverable>, Without<Clicked>)>,
-    mouse: Res<MouseCoordinates>,
-    mut commands: Commands,
-) {
-    for (entity, scaled_size, transform) in hoverables_query.iter() {
-        let half_width = scaled_size.width() / 2.;
-        let half_height = scaled_size.height() / 2.;
-
-        let min_x = transform.translation.x - half_width;
-        let max_x = transform.translation.x + half_width;
-        let min_y = transform.translation.y - half_height;
-        let max_y = transform.translation.y + half_height;
-
-        if mouse.0.x >= min_x && mouse.0.x <= max_x && mouse.0.y >= min_y && mouse.0.y <= max_y {
-            commands.entity(entity).insert(Hovered);
-        } else {
-            commands.entity(entity).remove::<Hovered>();
-        }
     }
 }
 

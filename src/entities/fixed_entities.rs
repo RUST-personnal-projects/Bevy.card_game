@@ -3,17 +3,18 @@ use bevy::{
     window::{PrimaryWindow, WindowResized},
 };
 
-use crate::screens::Screen;
+use crate::{screens::Screen, utils::image_scaling::ScaleOrderSet};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
         (
             init_fixed_scales,
-            update_fixed_scales_on_resize,
+            update_fixed_scales_on_window_resize,
             init_fixed_positions,
-            update_fixed_positions_on_resize,
+            update_fixed_positions_on_window_resize,
         )
+            .in_set(ScaleOrderSet::UpdateScale)
             .run_if(in_state(Screen::Playing)),
     );
 }
@@ -26,7 +27,7 @@ pub struct FixedScale {
 }
 
 impl FixedScale {
-    pub const CARD: Self = Self::with_ratio(0.19, 0.19);
+    pub const CARD: Self = Self::with_ratio(0.15, 0.15);
 
     const fn with_ratio(x_ratio: f32, y_ratio: f32) -> Self {
         Self {
@@ -66,7 +67,7 @@ fn init_fixed_scales(
 }
 
 /// Query all entities that have both [`Transform`] and [`Handle<Image>`] and update their scale to match the new window size
-fn update_fixed_scales_on_resize(
+fn update_fixed_scales_on_window_resize(
     mut query: Query<(&mut Transform, &Handle<Image>, &FixedScale)>,
     images: Res<Assets<Image>>,
     mut events: EventReader<WindowResized>,
@@ -136,7 +137,7 @@ fn init_fixed_positions(
 }
 
 /// Query all entities that have [`Transform`] and update their positions to match the new window size
-fn update_fixed_positions_on_resize(
+fn update_fixed_positions_on_window_resize(
     mut query: Query<(&mut Transform, &FixedPosition)>,
     mut events: EventReader<WindowResized>,
 ) {

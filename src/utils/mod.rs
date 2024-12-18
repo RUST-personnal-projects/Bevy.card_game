@@ -21,6 +21,6 @@ pub(super) fn plugin(app: &mut App) {
 
 #[derive(Bundle, Debug, Default)]
 pub struct UtilsBundle {
-    mouse: MouseInteractionBundle,
-    scaled_size: ScaledSize,
+    pub mouse: MouseInteractionBundle,
+    pub scaled_size: ScaledSize,
 }

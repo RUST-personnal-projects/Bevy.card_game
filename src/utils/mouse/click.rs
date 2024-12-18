@@ -21,16 +21,21 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 #[cfg(feature = "dev")]
-fn gizmo(mut gizmos: Gizmos, hoverables_query: Query<(&ScaledSize, &Transform), With<Clicked>>) {
+fn gizmo(
+    mut gizmos: Gizmos,
+    hoverables_query: Query<(&ScaledSize, &GlobalTransform), With<Clicked>>,
+) {
     use bevy::color::palettes::css;
 
     for (scaled_size, transform) in hoverables_query.iter() {
         let width = scaled_size.width() + 2.;
         let height = scaled_size.height() + 2.;
 
+        let (_, rotation, translation) = transform.to_scale_rotation_translation();
+
         gizmos.rect_2d(
-            transform.translation.truncate(),
-            transform.rotation.z,
+            translation.truncate(),
+            rotation.z,
             Vec2::new(width, height),
             css::RED,
         );
