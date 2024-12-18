@@ -1,6 +1,6 @@
 //! Development tools for the game. This plugin is only enabled in dev builds.
 
-use bevy::{color, dev_tools::states::log_transitions, prelude::*};
+use bevy::{color, dev_tools::states::log_transitions, prelude::*, window::PrimaryWindow};
 
 use crate::screens::Screen;
 
@@ -21,6 +21,7 @@ pub struct DebugNodeMarker;
 pub enum DebugViewOrderSet {
     DevState,
     Coordinates,
+    Window,
     Debug,
 }
 
@@ -31,6 +32,7 @@ pub(super) fn plugin(app: &mut App) {
             Update,
             (
                 switch_to_dev_mode.run_if(in_state(Screen::Playing)),
+                update_debug_ui_mouse_coordinates.run_if(in_state(Screen::Playing)),
                 toggle_debug.run_if(state_changed::<DevState>),
                 log_transitions::<Screen>,
                 log_transitions::<DevState>,
@@ -41,11 +43,18 @@ pub(super) fn plugin(app: &mut App) {
             (
                 DebugViewOrderSet::DevState,
                 DebugViewOrderSet::Coordinates,
+                DebugViewOrderSet::Window,
                 DebugViewOrderSet::Debug,
             )
                 .chain(),
         )
-        .add_systems(Startup, setup_debug.in_set(DebugViewOrderSet::DevState));
+        .add_systems(
+            Startup,
+            (
+                setup_debug.in_set(DebugViewOrderSet::DevState),
+                setup_window_debug_view.in_set(DebugViewOrderSet::Window),
+            ),
+        );
 }
 
 fn switch_to_dev_mode(
@@ -87,4 +96,31 @@ fn toggle_debug(mut debug_node_visibility_query: Query<&mut Visibility, With<Deb
         Visibility::Visible | Visibility::Inherited => Visibility::Hidden,
         Visibility::Hidden => Visibility::Visible,
     };
+}
+
+#[derive(Component)]
+pub(super) struct UIWindowMarker;
+
+fn setup_window_debug_view(
+    mut commands: Commands,
+    debug_node_query: Query<Entity, With<DebugNodeMarker>>,
+) {
+    let node = debug_node_query.single();
+
+    let window = commands.spawn((TextBundle::default(), UIWindowMarker)).id();
+
+    commands.entity(node).push_children(&[window]);
+}
+
+fn update_debug_ui_mouse_coordinates(
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    mut ui_window_query: Query<&mut Text, With<UIWindowMarker>>,
+) {
+    let window_size = window_query.single().size();
+    let mut ui_window_text = ui_window_query.single_mut();
+
+    *ui_window_text = Text::from_section(
+        format!("Window size: \nx: {}\ny: {}", window_size.x, window_size.y),
+        TextStyle::default(),
+    );
 }
