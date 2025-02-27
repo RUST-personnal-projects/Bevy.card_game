@@ -1,19 +1,18 @@
 use bevy::{
-    color::palettes::css,
     input::{mouse::MouseButtonInput, ButtonState},
     prelude::*,
 };
 
 #[cfg(feature = "dev")]
-use crate::dev_tools::DevState;
+use crate::{dev_tools::DevState, utils::image_scaling::ScaledSize};
 
 use super::hover::Hovered;
 
 #[derive(Component, Debug, Default)]
-pub(crate) struct Clickable;
+pub struct Clickable;
 
 #[derive(Component, Debug)]
-pub(crate) struct Clicked;
+pub struct Clicked;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, (is_clicked, is_released));
@@ -24,21 +23,22 @@ pub(super) fn plugin(app: &mut App) {
 #[cfg(feature = "dev")]
 fn gizmo(
     mut gizmos: Gizmos,
-    hoverables_query: Query<(&Handle<Image>, &Transform), With<Clicked>>,
-    assets: Res<Assets<Image>>,
+    hoverables_query: Query<(&ScaledSize, &GlobalTransform), With<Clicked>>,
 ) {
-    for (image, transform) in hoverables_query.iter() {
-        if let Some(image) = assets.get(image) {
-            let width = image.width() as f32 + 2.;
-            let height = image.height() as f32 + 2.;
+    use bevy::color::palettes::css;
 
-            gizmos.rect_2d(
-                transform.translation.truncate(),
-                transform.rotation.z,
-                Vec2::new(width, height),
-                css::RED,
-            );
-        }
+    for (scaled_size, transform) in hoverables_query.iter() {
+        let width = scaled_size.width() + 2.;
+        let height = scaled_size.height() + 2.;
+
+        let (_, rotation, translation) = transform.to_scale_rotation_translation();
+
+        gizmos.rect_2d(
+            translation.truncate(),
+            rotation.z,
+            Vec2::new(width, height),
+            css::RED,
+        );
     }
 }
 

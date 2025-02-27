@@ -1,7 +1,9 @@
-use bevy::{asset::AssetMetaCheck, prelude::*};
+use bevy::{asset::AssetMetaCheck, prelude::*, window::WindowResolution};
 
+#[cfg(feature = "dev")]
 mod dev_tools;
-mod game;
+mod entities;
+mod screens;
 mod utils;
 
 pub struct AppPlugin;
@@ -26,6 +28,7 @@ impl Plugin for AppPlugin {
                         canvas: Some("#bevy".to_string()),
                         fit_canvas_to_parent: true,
                         prevent_default_event_handling: true,
+                        resolution: WindowResolution::new(500., 500.),
                         ..default()
                     }
                     .into(),
@@ -42,7 +45,7 @@ impl Plugin for AppPlugin {
         );
 
         // Project Plugins
-        app.add_plugins((utils::plugin, game::plugin));
+        app.add_plugins((utils::plugin, screens::plugin, entities::plugin));
 
         // Enable dev tools for dev builds.
         #[cfg(feature = "dev")]

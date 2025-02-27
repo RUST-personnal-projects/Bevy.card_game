@@ -1,6 +1,6 @@
-pub(crate) mod click;
-pub(crate) mod coordinates;
-pub(crate) mod hover;
+pub mod click;
+pub mod coordinates;
+pub mod hover;
 
 use bevy::prelude::*;
 

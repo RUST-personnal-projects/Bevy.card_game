@@ -1,5 +1,11 @@
 {
     // Allow `rust-analyzer` and `cargo` to run simultaneously.
     // This uses extra storage space, so consider commenting it out.
-    "rust-analyzer.cargo.targetDir": true
+    "rust-analyzer.cargo.targetDir": true,
+    "rust-analyzer.cargo.features": [
+        "bevy/bevy_dev_tools",
+        "bevy/embedded_watcher",
+        "bevy/file_watcher",
+        "bevy/dynamic_linking",
+    ]
 }

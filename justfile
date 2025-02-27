@@ -1,22 +1,26 @@
-# Watch app in release mode
-watch_release:
-    cargo watch -x  "run --profile release-native --no-default-features"
-
 # Watch app in debug mode
 watch_debug:
     cargo watch -x "run --features bevy/dynamic_linking"
 
-# Build wasm executable in the chosen mode: debug or release
-build_wasm mode="debug":
+# Watch app in release mode
+watch_release:
+    cargo watch -x  "run --profile release-native --no-default-features"
+
+# Watch app in desired mode
+watch mode="debug":
     @if [ {{mode}} = "release" ]; then \
-        cargo build --target wasm32-unknown-unknown --release; \
+        just watch_release; \
     else \
-        cargo build --target wasm32-unknown-unknown; \
+        just watch_debug; \
     fi
+
+# Build wasm executable
+build_wasm:
+    @cargo build --target-dir target/WASM --target wasm32-unknown-unknown --release --no-default-features; \
     @wasm-bindgen --no-typescript --target web \
     --out-dir ./out/ \
     --out-name "card_game" \
-    ./target/wasm32-unknown-unknown/{{mode}}/card_game.wasm
+    ./target/WASM/wasm32-unknown-unknown/release/card_game.wasm
 
 # Copy wasm executable to frontend directory, path deduced from FRONT_PATH env variable
 copy_to_front:
@@ -31,8 +35,8 @@ copy_to_front:
     fi
 
 # Build and then move the game to frontend directory in the chosen mode: debug or release
-wasm_setup mode="debug":
-    @just build_wasm {{mode}}
+wasm_setup:
+    @just build_wasm
     @just copy_to_front
 
 # Build app in distribution mode
@@ -42,8 +46,8 @@ distribution:
 # uncomment after adding log crates
 
 # Run tests, capture is optional
-test capture="false":
-    if [ {{capture}} = true ]; then \
+test capture="true":
+    @if [ {{capture}} = true ]; then \
         cargo watch -x "test --features bevy/dynamic_linking"; \
     else \
         cargo watch -x "test --features bevy/dynamic_linking -- --nocapture"; \

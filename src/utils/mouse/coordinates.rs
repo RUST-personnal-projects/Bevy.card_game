@@ -4,10 +4,10 @@ use bevy::{input::mouse::MouseMotion, prelude::*};
 use crate::dev_tools::{DebugViewOrderSet, DevState};
 
 #[derive(Resource, Default)]
-pub(crate) struct MouseCoordinates(pub Vec2);
+pub struct MouseCoordinates(pub Vec2);
 
 #[derive(Resource, Default)]
-pub(crate) struct UIMouseCoordinates(pub Vec2);
+pub struct UIMouseCoordinates(pub Vec2);
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, (update_ui_coordinates, update_coordinates))

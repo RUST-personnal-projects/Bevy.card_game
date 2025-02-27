@@ -1,37 +1,59 @@
-pub(crate) mod generator;
+pub mod generator;
+
+use std::collections::VecDeque;
 
 use bevy::prelude::*;
 
-pub(super) use generator::DeckGenerator;
+use crate::{
+    screens::Screen,
+    utils::mouse::{coordinates::UIMouseCoordinates, hover::Hovered},
+};
 
-use super::{card::Card, screen::Screen};
-use crate::utils::mouse::{coordinates::UIMouseCoordinates, hover::Hovered};
+use super::{hand::Hand, InDeck, InHand};
 
-#[derive(Component, Debug, Clone, PartialEq)]
-pub struct Deck(Vec<Card>);
+#[derive(Component, Debug, Clone, PartialEq, Deref, DerefMut, Default)]
+pub struct Deck(pub VecDeque<Entity>);
 
-impl Default for Deck {
-    fn default() -> Self {
-        Self(DeckGenerator::default().generate_deck())
+impl Deck {
+    pub fn draw_card(
+        &mut self,
+        cards_in_deck_query: &mut Query<&mut Visibility, With<InDeck>>,
+        hand_query: &mut Query<(Entity, &mut Hand), With<Hand>>,
+        commands: &mut Commands,
+    ) -> Result<(), String> {
+        // Get a random card to "draw"
+        let Some(card_entity) = self.0.pop_back() else {
+            return Err("Tried to remove card from empty deck".to_string());
+        };
+        // Move card entity from deck to hand collections
+        let (hand_entity, mut hand) = hand_query.single_mut();
+        let mut card_visibility = cards_in_deck_query
+            .get_mut(card_entity)
+            .map_err(|err| format!("Error retrieving card: {}", err))?;
+
+        // Move card to hand entities
+        commands.entity(card_entity).remove::<InDeck>();
+        *card_visibility = Visibility::Visible;
+        commands.entity(card_entity).set_parent(hand_entity);
+        hand.cards.push(card_entity);
+        commands.entity(card_entity).insert(InHand);
+        Ok(())
     }
 }
 
 #[derive(Component)]
-struct InDeckMarker;
+pub struct NodeDeckMarker;
 
 #[derive(Component)]
-pub(crate) struct NodeDeckMarker;
+pub struct TextDeckMarker;
 
 #[derive(Component)]
-pub(crate) struct TextDeckMarker;
-
-#[derive(Component)]
-pub(crate) struct DeckMarker;
+pub struct DeckMarker;
 
 const DEFAULT_OFFSET: f32 = 15.;
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(Startup, fill_deck).add_systems(
+    app.add_systems(
         Update,
         (
             show_deck_data.run_if(is_deck_hovered),
@@ -41,18 +63,8 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
-// Spawn one invisible entity per card in the deck
-// TODO: rewrite this so that we spawn the deck instead of a set of cards
-fn fill_deck(mut commands: Commands) {
-    let deck = Deck::default();
-
-    deck.0.into_iter().for_each(|card| {
-        commands.spawn((card, InDeckMarker));
-    });
-}
-
 fn is_deck_hovered(deck_hovered_query: Query<(), (With<DeckMarker>, With<Hovered>)>) -> bool {
-    deck_hovered_query.iter().count() == 1
+    deck_hovered_query.get_single().is_ok()
 }
 
 /// Make the node showing how many cards left in deck and update it's style position, update text inside node
@@ -60,12 +72,12 @@ fn show_deck_data(
     mut node_query: Query<(&mut Visibility, &mut Style), With<NodeDeckMarker>>,
     mut text_query: Query<&mut Text, With<TextDeckMarker>>,
     ui_mouse_coordinates: Res<UIMouseCoordinates>,
-    deck_query: Query<(), With<InDeckMarker>>,
+    deck_query: Query<&Deck, With<DeckMarker>>,
 ) {
     let (mut visibility, mut style) = node_query.single_mut();
     let mut text = text_query.single_mut();
 
-    let len = deck_query.iter().count();
+    let len = deck_query.single().len();
 
     let UIMouseCoordinates(Vec2 { x, y }) = ui_mouse_coordinates.into_inner();
     style.left = Val::Px(*x + DEFAULT_OFFSET);
@@ -85,29 +97,6 @@ fn hide_deck_data(mut node_query: Query<&mut Visibility, With<NodeDeckMarker>>) 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    mod fill_deck {
-        use crate::utils::test::count_entities::{count_entities, EntityCount};
-
-        use super::*;
-
-        #[test]
-        fn spawned_all_entities() {
-            let deck_size = Deck::default().0.len();
-
-            let mut app = App::new();
-
-            app.add_systems(Startup, fill_deck)
-                .add_systems(Update, count_entities::<InDeckMarker>)
-                .init_resource::<EntityCount>();
-
-            app.update();
-
-            let entities_count = app.world().resource::<EntityCount>();
-
-            assert_eq!(entities_count.0, deck_size);
-        }
-    }
 
     mod is_deck_hovered {
         use super::*;
@@ -178,6 +167,7 @@ mod tests {
                 .world_mut()
                 .spawn((TextBundle::default(), TextDeckMarker))
                 .id();
+            app.world_mut().spawn((Deck(VecDeque::new()), DeckMarker));
             app.world_mut().entity_mut(node).add_child(text);
 
             app.update();

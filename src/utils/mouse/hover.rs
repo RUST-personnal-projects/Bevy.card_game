@@ -1,67 +1,217 @@
-use bevy::{color::palettes::css, prelude::*};
+use std::any::TypeId;
 
 #[cfg(feature = "dev")]
 use crate::dev_tools::DevState;
+use bevy::{ecs::component::ComponentId, prelude::*, ptr::PtrMut, reflect::ReflectFromPtr};
+use pretty_type_name::pretty_type_name_str;
 
 use super::{click::Clicked, coordinates::MouseCoordinates};
+use crate::utils::image_scaling::ScaledSize;
 
 #[derive(Component, Debug, Default)]
-pub(crate) struct Hoverable;
+pub struct Hoverable;
 
 #[derive(Component, Debug)]
-pub(crate) struct Hovered;
+pub struct Hovered;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, is_hovered);
     #[cfg(feature = "dev")]
-    app.add_systems(Update, gizmo.run_if(in_state(DevState::On)));
+    app.add_systems(Update, (gizmo, entity_info).run_if(in_state(DevState::On)));
 }
 
 #[cfg(feature = "dev")]
 fn gizmo(
     mut gizmos: Gizmos,
-    hoverables_query: Query<(&Handle<Image>, &Transform), (With<Hovered>, Without<Clicked>)>,
-    assets: Res<Assets<Image>>,
+    hoverables_query: Query<(&ScaledSize, &GlobalTransform), (With<Hovered>, Without<Clicked>)>,
 ) {
-    for (image, transform) in hoverables_query.iter() {
-        if let Some(image) = assets.get(image) {
-            let width = image.width() as f32 + 2.;
-            let height = image.height() as f32 + 2.;
+    use bevy::color::palettes::css;
 
-            gizmos.rect_2d(
-                transform.translation.truncate(),
-                transform.rotation.z,
-                Vec2::new(width, height),
-                css::GREEN,
-            );
-        }
+    for (scaled_size, transform) in hoverables_query.iter() {
+        let width = scaled_size.width() + 2.;
+        let height = scaled_size.height() + 2.;
+
+        let (_, rotation, translation) = transform.to_scale_rotation_translation();
+
+        gizmos.rect_2d(
+            translation.truncate(),
+            rotation.z,
+            Vec2::new(width, height),
+            css::GREEN,
+        );
     }
 }
 
 fn is_hovered(
     hoverables_query: Query<
-        (Entity, &Handle<Image>, &Transform),
+        (Entity, &ScaledSize, &GlobalTransform),
         (With<Hoverable>, Without<Clicked>),
     >,
-    images: Res<Assets<Image>>,
     mouse: Res<MouseCoordinates>,
     mut commands: Commands,
 ) {
-    for (entity, image, transform) in hoverables_query.iter() {
-        let image = images.get(image).unwrap();
-        let half_width = image.width() as f32 / 2.;
-        let half_height = image.height() as f32 / 2.;
+    for (entity, scaled_size, transform) in hoverables_query.iter() {
+        let half_width = scaled_size.width() / 2.;
+        let half_height = scaled_size.height() / 2.;
 
-        let min_x = transform.translation.x - half_width;
-        let max_x = transform.translation.x + half_width;
-        let min_y = transform.translation.y - half_height;
-        let max_y = transform.translation.y + half_height;
+        let translation = transform.translation();
+
+        let min_x = translation.x - half_width;
+        let max_x = translation.x + half_width;
+        let min_y = translation.y - half_height;
+        let max_y = translation.y + half_height;
 
         if mouse.0.x >= min_x && mouse.0.x <= max_x && mouse.0.y >= min_y && mouse.0.y <= max_y {
             commands.entity(entity).insert(Hovered);
         } else {
             commands.entity(entity).remove::<Hovered>();
         }
+    }
+}
+
+/// Credits go to [bevy_inspector_egui](https://crates.io/crates/bevy_inspector_egui) for the general idea how to use reflection to retrieve components
+#[cfg(feature = "dev")]
+fn entity_info(world: &mut World) {
+    let entities = world
+        .query_filtered::<Entity, Added<Hovered>>()
+        .iter(world)
+        .collect::<Vec<_>>();
+
+    for entity in entities {
+        if let Some(entity_ref) = world.get_entity(entity) {
+            let components = entity_components(entity_ref, world);
+            let mut components_logs = Vec::new();
+            let mut components_names = Vec::new();
+            for (component_id, component_type_id, name) in components {
+                components_names.push(name.clone());
+                if let Some(value) =
+                    component_reflected_value(entity_ref, world, component_id, component_type_id)
+                {
+                    components_logs.push(format!("{}: {}", name, log_reflect(value)));
+                }
+            }
+            info!(
+                "\n{}\n{}",
+                components_names.join(", "),
+                components_logs.join("\n")
+            );
+        }
+    }
+}
+
+/// Retrieves bevy [`ComponentId`] and std [`TypeId`] for every components attached to an entity
+#[cfg(feature = "dev")]
+fn entity_components(
+    entity_ref: EntityRef,
+    world: &World,
+) -> Vec<(ComponentId, Option<TypeId>, String)> {
+    entity_ref
+        .archetype()
+        .components()
+        .map(|component_id| {
+            let info = world.components().get_info(component_id).unwrap();
+
+            (
+                component_id,
+                info.type_id(),
+                pretty_type_name_str(info.name()),
+            )
+        })
+        .collect::<Vec<_>>()
+}
+
+/// Retrieves a component [`PtrMut`] and convert it to a [`Reflect`]
+#[cfg(feature = "dev")]
+fn component_reflected_value<'a>(
+    entity_ref: EntityRef,
+    world: &World,
+    component_id: ComponentId,
+    component_type_id: Option<TypeId>,
+) -> Option<&'a mut dyn Reflect> {
+    let value = entity_ref.get_by_id(component_id)?;
+    let type_id = component_type_id?;
+    let type_registry = world.resource::<AppTypeRegistry>().0.clone();
+    let type_registry = type_registry.read();
+    let registration = type_registry.get(type_id)?;
+    let reflect_from_ptr = registration.data::<ReflectFromPtr>().unwrap();
+
+    let ptr: PtrMut<'a> = unsafe { PtrMut::new(std::ptr::NonNull::new(value.as_ptr())?) };
+    // As stated in as_reflect_mut we need to ensure that the Ptr can be converted to something reflected by checking that they would have same [`TypeId`]
+    reflect_from_ptr
+        .type_id()
+        .eq(&type_id)
+        .then(|| unsafe { reflect_from_ptr.as_reflect_mut(ptr) })
+}
+
+/// Recursively retrieves any type of [`Reflect`] down to [`bevy::reflect::ReflectMut::Value`]
+#[cfg(feature = "dev")]
+fn log_reflect(value: &mut dyn Reflect) -> String {
+    match value.reflect_mut() {
+        bevy::reflect::ReflectMut::Struct(value) => {
+            let mut fields = Vec::new();
+            for i in 0..value.field_len() {
+                let field = log_reflect(value.field_at_mut(i).unwrap());
+                let name = value.name_at(i).unwrap();
+                fields.push(format!("{}: {}", name, field,));
+            }
+            fields.join(", ")
+        }
+        bevy::reflect::ReflectMut::TupleStruct(value) => {
+            let mut fields = Vec::new();
+            for i in 0..value.field_len() {
+                fields.push(log_reflect(value.field_mut(i).unwrap()));
+            }
+            format!("({})", fields.join(", "))
+        }
+        bevy::reflect::ReflectMut::Tuple(value) => {
+            let mut fields = Vec::new();
+            for i in 0..value.field_len() {
+                fields.push(log_reflect(value.field_mut(i).unwrap()));
+            }
+            format!("({})", fields.join(", "))
+        }
+        bevy::reflect::ReflectMut::List(value) => {
+            let mut fields = Vec::new();
+            for i in 0..value.len() {
+                fields.push(log_reflect(value.get_mut(i).unwrap()));
+            }
+            format!("[{}]", fields.join(", "))
+        }
+        bevy::reflect::ReflectMut::Array(value) => {
+            let mut fields = Vec::new();
+            for i in 0..value.len() {
+                fields.push(log_reflect(value.get_mut(i).unwrap()));
+            }
+            format!("[{}]", fields.join(", "))
+        }
+        bevy::reflect::ReflectMut::Map(value) => {
+            let mut fields = Vec::new();
+            for i in 0..value.len() {
+                let (key, value) = value.get_at_mut(i).unwrap();
+                fields.push(format!("{:?}: {}", key, log_reflect(value)));
+            }
+            format!("[{}]", fields.join(", "))
+        }
+        bevy::reflect::ReflectMut::Enum(value) => match value.variant_type() {
+            bevy::reflect::VariantType::Struct => {
+                let mut fields = Vec::new();
+                for i in 0..value.field_len() {
+                    let field = log_reflect(value.field_at_mut(i).unwrap());
+                    let name = value.name_at(i).unwrap();
+                    fields.push(format!("{}: {}", name, field));
+                }
+                format!("{}: {}", value.variant_name(), fields.join(", "))
+            }
+            bevy::reflect::VariantType::Tuple => {
+                let mut fields = Vec::new();
+                for i in 0..value.field_len() {
+                    fields.push(log_reflect(value.field_at_mut(i).unwrap()));
+                }
+                format!("({})", fields.join(", "))
+            }
+            bevy::reflect::VariantType::Unit => value.variant_name().to_string(),
+        },
+        bevy::reflect::ReflectMut::Value(value) => format!("{:?}", value),
     }
 }
 
@@ -74,14 +224,17 @@ mod tests {
         use super::*;
         use test::asset_loading::{check_loaded, is_asset_loaded, TestAssetLoadingState};
 
-        use crate::{game::card::CARD_BACK_PATH, utils::mouse::coordinates::MouseCoordinates};
+        use crate::{
+            entities::cards::CARD_BACK_PATH,
+            utils::{image_scaling, mouse::coordinates::MouseCoordinates},
+        };
 
         #[test]
         // Hoverable [V] Hovering [V]
         fn hoverable_hovering() {
             // Setup app
             let mut app = App::new();
-            app.add_plugins((MinimalPlugins, test::plugin))
+            app.add_plugins((MinimalPlugins, test::plugin, image_scaling::plugin))
                 .init_resource::<MouseCoordinates>();
 
             // Add mouse coordinates Resource
@@ -96,7 +249,12 @@ mod tests {
             // Add Hoverable entity that is Hovered
             let entity_id = app
                 .world_mut()
-                .spawn((Hoverable, image, Transform::from_xyz(0., 0., 0.)))
+                .spawn((
+                    Hoverable,
+                    image,
+                    ScaledSize::default(),
+                    TransformBundle::from_transform(Transform::from_xyz(0., 0., 0.)),
+                ))
                 .id();
 
             // Add two systems: one is a test system that checks asset is loaded, second is checking if Image asset is hovered
@@ -129,7 +287,7 @@ mod tests {
         fn hoverable_not_hovering() {
             // Setup app
             let mut app = App::new();
-            app.add_plugins((MinimalPlugins, test::plugin))
+            app.add_plugins((MinimalPlugins, test::plugin, image_scaling::plugin))
                 .init_resource::<MouseCoordinates>();
 
             // Add mouse coordinates Resource
@@ -144,7 +302,12 @@ mod tests {
             // Add Hoverable entity that is Hovered
             let entity_id = app
                 .world_mut()
-                .spawn((Hoverable, image, Transform::from_xyz(0., 0., 0.)))
+                .spawn((
+                    Hoverable,
+                    image,
+                    ScaledSize::default(),
+                    TransformBundle::from_transform(Transform::from_xyz(0., 0., 0.)),
+                ))
                 .id();
 
             // Add two systems: one is a test system that checks asset is loaded, second is checking if Image asset is hovered
@@ -177,7 +340,7 @@ mod tests {
         fn not_hoverable_hovering() {
             // Setup app
             let mut app = App::new();
-            app.add_plugins((MinimalPlugins, test::plugin))
+            app.add_plugins((MinimalPlugins, test::plugin, image_scaling::plugin))
                 .init_resource::<MouseCoordinates>();
 
             // Add mouse coordinates Resource
@@ -192,7 +355,11 @@ mod tests {
             // Add Hoverable entity that is Hovered
             let entity_id = app
                 .world_mut()
-                .spawn((image, Transform::from_xyz(0., 0., 0.)))
+                .spawn((
+                    image,
+                    ScaledSize::default(),
+                    TransformBundle::from_transform(Transform::from_xyz(0., 0., 0.)),
+                ))
                 .id();
 
             // Add two systems: one is a test system that checks asset is loaded, second is checking if Image asset is hovered
@@ -225,7 +392,7 @@ mod tests {
         fn not_hoverable_not_hovering() {
             // Setup app
             let mut app = App::new();
-            app.add_plugins((MinimalPlugins, test::plugin))
+            app.add_plugins((MinimalPlugins, test::plugin, image_scaling::plugin))
                 .init_resource::<MouseCoordinates>();
 
             // Add mouse coordinates Resource
@@ -240,7 +407,11 @@ mod tests {
             // Add Hoverable entity that is Hovered
             let entity_id = app
                 .world_mut()
-                .spawn((image, Transform::from_xyz(0., 0., 0.)))
+                .spawn((
+                    image,
+                    ScaledSize::default(),
+                    TransformBundle::from_transform(Transform::from_xyz(0., 0., 0.)),
+                ))
                 .id();
 
             // Add two systems: one is a test system that checks asset is loaded, second is checking if Image asset is hovered
