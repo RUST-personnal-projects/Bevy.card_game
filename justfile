@@ -1,10 +1,10 @@
-# Watch app in release mode
-watch_release:
-    cargo watch -x  "run --profile release-native --no-default-features"
-
 # Watch app in debug mode
 watch_debug:
     cargo watch -x "run --features bevy/dynamic_linking"
+
+# Watch app in release mode
+watch_release:
+    cargo watch -x  "run --profile release-native --no-default-features"
 
 # Watch app in desired mode
 watch mode="debug":

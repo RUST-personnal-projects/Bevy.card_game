@@ -253,7 +253,7 @@ mod tests {
                     Hoverable,
                     image,
                     ScaledSize::default(),
-                    Transform::from_xyz(0., 0., 0.),
+                    TransformBundle::from_transform(Transform::from_xyz(0., 0., 0.)),
                 ))
                 .id();
 
@@ -306,7 +306,7 @@ mod tests {
                     Hoverable,
                     image,
                     ScaledSize::default(),
-                    Transform::from_xyz(0., 0., 0.),
+                    TransformBundle::from_transform(Transform::from_xyz(0., 0., 0.)),
                 ))
                 .id();
 
@@ -358,7 +358,7 @@ mod tests {
                 .spawn((
                     image,
                     ScaledSize::default(),
-                    Transform::from_xyz(0., 0., 0.),
+                    TransformBundle::from_transform(Transform::from_xyz(0., 0., 0.)),
                 ))
                 .id();
 
@@ -410,7 +410,7 @@ mod tests {
                 .spawn((
                     image,
                     ScaledSize::default(),
-                    Transform::from_xyz(0., 0., 0.),
+                    TransformBundle::from_transform(Transform::from_xyz(0., 0., 0.)),
                 ))
                 .id();
 
