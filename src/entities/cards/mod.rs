@@ -7,14 +7,14 @@ use bevy::prelude::*;
 pub const CARD_BACK_PATH: &str = "images/cards/card_back.png";
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_plugins((deck::plugin, hand::plugin));
+    app.add_plugins((deck::plugin, hand::plugin, graveyard::plugin));
 }
 
 #[derive(Component)]
 pub struct InDeck;
 
 #[derive(Component)]
-pub struct _InGraveyard;
+pub struct InGraveyard;
 
 #[derive(Component)]
 pub struct InHand;
