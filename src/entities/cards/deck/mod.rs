@@ -9,35 +9,13 @@ use crate::{
     utils::mouse::{coordinates::UIMouseCoordinates, hover::Hovered},
 };
 
-use super::{hand::Hand, InDeck, InHand};
-
 #[derive(Component, Debug, Clone, PartialEq, Deref, DerefMut, Default)]
 pub struct Deck(pub VecDeque<Entity>);
 
 impl Deck {
-    pub fn draw_card(
-        &mut self,
-        cards_in_deck_query: &mut Query<&mut Visibility, With<InDeck>>,
-        hand_query: &mut Query<(Entity, &mut Hand), With<Hand>>,
-        commands: &mut Commands,
-    ) -> Result<(), String> {
-        // Get a random card to "draw"
-        let Some(card_entity) = self.0.pop_back() else {
-            return Err("Tried to remove card from empty deck".to_string());
-        };
-        // Move card entity from deck to hand collections
-        let (hand_entity, mut hand) = hand_query.single_mut();
-        let mut card_visibility = cards_in_deck_query
-            .get_mut(card_entity)
-            .map_err(|err| format!("Error retrieving card: {}", err))?;
-
-        // Move card to hand entities
-        commands.entity(card_entity).remove::<InDeck>();
-        *card_visibility = Visibility::Visible;
-        commands.entity(card_entity).set_parent(hand_entity);
-        hand.cards.push(card_entity);
-        commands.entity(card_entity).insert(InHand);
-        Ok(())
+    pub fn draw_card(&mut self) -> Option<Entity> {
+        // Get a deck's last card
+        self.0.pop_back()
     }
 }
 

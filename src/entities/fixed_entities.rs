@@ -132,7 +132,7 @@ fn init_fixed_positions(
         let window_size = window_query.single().resolution.size();
         transform.translation = fixed_position
             .updated_translation(window_size.x, window_size.y)
-            .extend(1.);
+            .extend(transform.translation.z);
     }
 }
 

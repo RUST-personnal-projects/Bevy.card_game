@@ -4,6 +4,7 @@ use crate::{
     entities::{
         cards::{
             deck::{generator::DeckGenerator, Deck, DeckMarker, NodeDeckMarker, TextDeckMarker},
+            graveyard::Graveyard,
             hand::{Hand, PlayerHand},
             InDeck,
         },
@@ -17,6 +18,8 @@ use crate::{
 };
 
 use bevy::color::palettes::css;
+
+use super::game_loop::DrawCardEvent;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
@@ -95,11 +98,16 @@ fn spawn_graveyard(mut commands: Commands, image_handles: Res<HandleMap<ImageKey
     commands.spawn((
         SpriteBundle {
             texture: texture_handle.clone(),
+            transform: Transform {
+                translation: Vec3::new(0., 0., -1.),
+                ..default()
+            },
             ..default()
         },
         UtilsBundle::default(),
         FixedPosition::GRAVEYARD,
         FixedScale::CARD,
+        Graveyard::default(),
     ));
 }
 
@@ -115,17 +123,20 @@ fn spawn_hand(mut commands: Commands) {
 }
 
 fn draw_hand(
-    mut cards_in_deck_query: Query<&mut Visibility, With<InDeck>>,
-    mut hand_query: Query<(Entity, &mut Hand), With<Hand>>,
+    mut ev_draw_card: EventWriter<DrawCardEvent>,
+    hand_query: Query<Entity, With<Hand>>,
     mut deck_query: Query<&mut Deck>,
-    mut commands: Commands,
 ) {
     let mut deck = deck_query.single_mut();
 
     for _ in 0..7 {
-        if let Err(error) = deck.draw_card(&mut cards_in_deck_query, &mut hand_query, &mut commands)
-        {
-            warn!(error);
+        if let Some(card) = deck.draw_card() {
+            ev_draw_card.send(DrawCardEvent {
+                card,
+                hand: hand_query.single(),
+            });
+        } else {
+            warn!("Tried to remove card from empty deck");
         }
     }
 }
