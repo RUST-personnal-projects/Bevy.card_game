@@ -127,7 +127,7 @@ fn read_draw_card_event(
 fn read_play_card_event(mut ev_draw_card: EventReader<PlayCardEvent>, mut commands: Commands) {
     for &PlayCardEvent { card, hand: _hand } in ev_draw_card.read() {
         commands.entity(card).remove::<InHand>();
-        commands.entity(card).remove_parent_in_place();
+        commands.entity(card).remove_parent();
         commands.entity(card).insert(InGraveyard);
     }
 }
