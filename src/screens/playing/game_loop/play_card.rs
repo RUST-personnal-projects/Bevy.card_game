@@ -62,8 +62,8 @@ fn send_play_card_event(
     if let Ok((hand, mut hand_component)) = hand_query.get_single_mut() {
         if let Some(card) = hand_component.play_card(card_query.get_single().ok()) {
             ev_draw_card.send(PlayCardEvent { card, hand });
+            turn_next_state.set(CurrentTurnState::End);
         }
-        turn_next_state.set(CurrentTurnState::End);
     } else {
         warn!("Tried to play card from non-existing hand");
     }
