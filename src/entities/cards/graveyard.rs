@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::screens::{
-    playing::game_loop::{PlayCardEvent, PlayCardOrderSet},
+    playing::game_loop::play_card::{PlayCardEvent, PlayCardOrderSet},
     Screen,
 };
 

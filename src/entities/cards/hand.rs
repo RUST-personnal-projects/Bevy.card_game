@@ -5,7 +5,10 @@ use bevy::{
 
 use crate::{
     screens::{
-        playing::game_loop::{DrawCardEvent, PlayCardEvent, PlayCardOrderSet},
+        playing::game_loop::{
+            draw_card::DrawCardEvent,
+            play_card::{PlayCardEvent, PlayCardOrderSet},
+        },
         Screen,
     },
     utils::image_scaling::{ScaleOrderSet, ScaledSize},

@@ -19,18 +19,21 @@ use crate::{
 
 use bevy::color::palettes::css;
 
-use super::game_loop::DrawCardEvent;
+use super::game_loop::{
+    draw_card::DrawCardEvent,
+    turn::{CurrentPlayerState, CurrentTurnState},
+};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         OnEnter(Screen::Playing),
         (spawn_deck, spawn_graveyard, spawn_hand, draw_hand).chain(),
-    );
+    )
+    .insert_state(CurrentTurnState::Start)
+    .insert_state(CurrentPlayerState::LocalPlayer);
 }
 
 fn spawn_deck(mut commands: Commands, image_handles: Res<HandleMap<ImageKey>>) {
-    // Spawn each card of the
-
     // Spawn an UI node containing text to show how many cards are left
     commands
         .spawn((
