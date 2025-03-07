@@ -45,14 +45,12 @@ fn gizmo(
 /// Get Clickable components that are hovered and add Clicked if left mouse press event is registered
 fn is_clicked(
     mut entity_query: Query<Entity, (With<Hovered>, With<Clickable>)>,
-    mut mouse_event: EventReader<MouseButtonInput>,
+    buttons: Res<ButtonInput<MouseButton>>,
     mut commands: Commands,
 ) {
-    for ev in mouse_event.read() {
+    if buttons.just_pressed(MouseButton::Left) {
         for entity in entity_query.iter_mut() {
-            if ev.button == MouseButton::Left && ev.state.is_pressed() {
-                commands.entity(entity).insert(Clicked);
-            }
+            commands.entity(entity).insert(Clicked);
         }
     }
 }
