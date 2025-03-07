@@ -22,6 +22,8 @@ pub enum DebugViewOrderSet {
     DevState,
     Coordinates,
     Window,
+    Player,
+    Turn,
     Debug,
 }
 
@@ -44,6 +46,8 @@ pub(super) fn plugin(app: &mut App) {
                 DebugViewOrderSet::DevState,
                 DebugViewOrderSet::Coordinates,
                 DebugViewOrderSet::Window,
+                DebugViewOrderSet::Player,
+                DebugViewOrderSet::Turn,
                 DebugViewOrderSet::Debug,
             )
                 .chain(),

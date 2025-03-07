@@ -8,7 +8,7 @@ use crate::screens::Screen;
 use turn::{CurrentPlayerState, CurrentTurnState};
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_plugins((play_card::plugin, draw_card::plugin))
+    app.add_plugins((play_card::plugin, draw_card::plugin, turn::plugin))
         .add_systems(
             Update,
             (end_turn)
