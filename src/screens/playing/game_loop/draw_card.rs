@@ -4,7 +4,7 @@ use super::turn::{CurrentPlayerState, CurrentTurnState};
 use crate::{
     entities::cards::{deck::Deck, hand::Hand},
     screens::Screen,
-    utils::mouse::click::Clicked,
+    utils::mouse::{click::Clickable, hover::Hovered, on_clicked_event::OnEntityClickedEvent},
 };
 
 #[derive(Event)]
@@ -28,22 +28,25 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 fn send_draw_card_event(
-    mut ev_draw_card: EventWriter<DrawCardEvent>,
+    mut draw_card_ev_writer: EventWriter<DrawCardEvent>,
+    mut on_click_ev_reader: EventReader<OnEntityClickedEvent>,
     hand_query: Query<Entity, With<Hand>>,
-    mut deck_query: Query<&mut Deck, Added<Clicked>>,
+    mut deck_query: Query<&mut Deck, (With<Clickable>, With<Hovered>)>,
     mut turn_next_state: ResMut<NextState<CurrentTurnState>>,
     mut commands: Commands,
 ) {
-    if let Ok(mut deck) = deck_query.get_single_mut() {
-        if let Some(card) = deck.draw_card() {
-            ev_draw_card.send(DrawCardEvent {
-                card,
-                hand: hand_query.single(),
-            });
-            commands.entity(card).insert(DrawnCardMarker);
-            turn_next_state.set(CurrentTurnState::Drawn);
-        } else {
-            warn!("Tried to remove card from empty deck");
+    for ev in on_click_ev_reader.read() {
+        if let Ok(mut deck) = deck_query.get_mut(**ev) {
+            if let Some(card) = deck.draw_card() {
+                draw_card_ev_writer.send(DrawCardEvent {
+                    card,
+                    hand: hand_query.single(),
+                });
+                commands.entity(card).insert(DrawnCardMarker);
+                turn_next_state.set(CurrentTurnState::Drawn);
+            } else {
+                warn!("Tried to remove card from empty deck");
+            }
         }
     }
 }
