@@ -145,7 +145,7 @@ fn update_fixed_positions_on_window_resize(
         for (mut transform, fixed_position) in query.iter_mut() {
             transform.translation = fixed_position
                 .updated_translation(*width, *height)
-                .extend(1.);
+                .extend(transform.translation.z);
         }
     }
 }

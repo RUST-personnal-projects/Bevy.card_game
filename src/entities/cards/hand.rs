@@ -4,6 +4,7 @@ use bevy::{
 };
 
 use crate::{
+    entities::fixed_entities::FixedPosition,
     screens::{
         playing::game_loop::{
             draw_card::DrawCardEvent,
@@ -132,5 +133,6 @@ fn read_play_card_event(mut ev_draw_card: EventReader<PlayCardEvent>, mut comman
         commands.entity(card).remove::<InHand>();
         commands.entity(card).remove_parent();
         commands.entity(card).insert(InGraveyard);
+        commands.entity(card).insert(FixedPosition::GRAVEYARD);
     }
 }
