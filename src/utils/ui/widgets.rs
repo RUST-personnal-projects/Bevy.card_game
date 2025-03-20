@@ -55,13 +55,20 @@ impl<T: Spawn> Widgets for T {
             }
         };
 
+        self.spawn(Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            justify_content: JustifyContent::SpaceBetween,
+            ..default()
+        });
+
         let mut entity = self.spawn((
             Name::new("Button"),
             button,
             InteractionPalette {
-                none: NODE_BACKGROUND,
-                hovered: BUTTON_HOVERED_BACKGROUND,
-                pressed: BUTTON_PRESSED_BACKGROUND,
+                none: NORMAL_BUTTON,
+                hovered: HOVERED_BUTTON,
+                pressed: PRESSED_BUTTON,
             },
         ));
         entity.with_children(|children| {
@@ -174,11 +181,19 @@ impl<T: Spawn> Widgets for T {
 pub trait Containers {
     /// Spawns a root node that covers the full screen
     /// and centers its content horizontally and vertically.
-    fn ui_root(&mut self) -> EntityCommands;
+    fn ui_root(
+        &mut self,
+        transform: Option<Transform>,
+        flex_direction: Option<FlexDirection>,
+    ) -> EntityCommands;
 }
 
 impl Containers for Commands<'_, '_> {
-    fn ui_root(&mut self) -> EntityCommands {
+    fn ui_root(
+        &mut self,
+        transform: Option<Transform>,
+        flex_direction: Option<FlexDirection>,
+    ) -> EntityCommands {
         self.spawn((
             Name::new("UI Root"),
             NodeBundle {
@@ -187,11 +202,12 @@ impl Containers for Commands<'_, '_> {
                     height: Percent(100.0),
                     justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
-                    flex_direction: FlexDirection::Column,
+                    flex_direction: flex_direction.unwrap_or(FlexDirection::Column),
                     row_gap: Px(10.0),
                     position_type: PositionType::Absolute,
                     ..default()
                 },
+                transform: transform.unwrap_or_default(),
                 ..default()
             },
         ))

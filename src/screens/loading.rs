@@ -20,7 +20,7 @@ pub(super) fn plugin(app: &mut App) {
 
 fn enter_loading(mut commands: Commands) {
     commands
-        .ui_root()
+        .ui_root(None, None)
         .insert(StateScoped(Screen::Loading))
         .with_children(|children| {
             children.label("Loading...");

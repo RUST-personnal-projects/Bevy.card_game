@@ -13,6 +13,7 @@ use crate::{
     screens::Screen,
     utils::{
         assets::{images::ImageKey, HandleMap},
+        // ui::prelude::*,
         UtilsBundle,
     },
 };
@@ -27,7 +28,7 @@ use super::game_loop::{
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         OnEnter(Screen::Playing),
-        (spawn_deck, spawn_graveyard, spawn_hand, draw_hand).chain(),
+        (spawn_deck, spawn_graveyard, spawn_hand, draw_hand, spawn_ui).chain(),
     )
     .insert_state(CurrentTurnState::Start)
     .insert_state(CurrentPlayerState::LocalPlayer);
@@ -116,13 +117,18 @@ fn spawn_graveyard(mut commands: Commands, image_handles: Res<HandleMap<ImageKey
 
 fn spawn_hand(mut commands: Commands) {
     commands.spawn((
-        // UtilsBundle::default(),
         FixedPosition::HAND,
-        // FixedScale::CARD,
         Hand::default(),
         PlayerHand,
         SpatialBundle::default(),
     ));
+}
+
+fn spawn_ui(mut _commands: Commands) {
+    // commands.ui_root().with_children(|children| {
+    //     children.button("button 1", None, None);
+    //     children.button("button 2", None, None);
+    // });
 }
 
 fn draw_hand(
