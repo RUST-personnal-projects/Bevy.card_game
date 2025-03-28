@@ -52,10 +52,10 @@ impl ScaledSize {
 }
 
 fn update_scaled_size(
-    mut hoverables_query: Query<(&Handle<Image>, &Transform, &mut ScaledSize), Changed<Transform>>,
+    mut hoverables_query: Query<(&Sprite, &Transform, &mut ScaledSize), Changed<Transform>>,
     images: Res<Assets<Image>>,
 ) {
-    for (image, transform, mut scaled_size) in hoverables_query.iter_mut() {
-        scaled_size.set_scaled_size(transform, image, &images)
+    for (sprite, transform, mut scaled_size) in hoverables_query.iter_mut() {
+        scaled_size.set_scaled_size(transform, &sprite.image, &images)
     }
 }

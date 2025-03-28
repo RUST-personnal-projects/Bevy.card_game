@@ -31,11 +31,10 @@ fn gizmo(
         let width = scaled_size.width() + 2.;
         let height = scaled_size.height() + 2.;
 
-        let (_, rotation, translation) = transform.to_scale_rotation_translation();
+        let (_, _, translation) = transform.to_scale_rotation_translation();
 
         gizmos.rect_2d(
-            translation.truncate(),
-            rotation.z,
+            Isometry2d::from_translation(translation.truncate()),
             Vec2::new(width, height),
             css::RED,
         );
@@ -48,7 +47,7 @@ fn is_clicked(
     buttons: Res<ButtonInput<MouseButton>>,
     mut commands: Commands,
 ) {
-    if buttons.just_pressed(MouseButton::Left) {
+    if buttons.pressed(MouseButton::Left) {
         for entity in entity_query.iter_mut() {
             commands.entity(entity).insert(Clicked);
         }
@@ -84,20 +83,14 @@ mod tests {
             let mut app = App::new();
 
             // Add mouse click event listener
-            app.add_event::<MouseButtonInput>();
-
-            // Create window to be clicked
-            let window_id = app.world_mut().spawn(Window::default()).id();
-
-            // Send mouse click event
-            app.world_mut().send_event(MouseButtonInput {
-                button: MouseButton::Left,
-                state: ButtonState::Pressed,
-                window: window_id,
-            });
+            app.init_resource::<ButtonInput<MouseButton>>();
 
             // Add Clickable entity that is not Clickable but hovered
             let entity_id = app.world_mut().spawn(Hovered).id();
+
+            app.world_mut()
+                .resource_mut::<ButtonInput<MouseButton>>()
+                .press(MouseButton::Left);
 
             // Add our system
             app.add_systems(Update, is_clicked);
@@ -108,7 +101,7 @@ mod tests {
             // retrieve entity after update
             let entity = app.world().get_entity(entity_id);
 
-            assert!(entity.is_some());
+            assert!(entity.is_ok());
             assert!(!entity.unwrap().contains::<Clicked>());
         }
 
@@ -119,23 +112,17 @@ mod tests {
             let mut app = App::new();
 
             // Add mouse click event listener
-            app.add_event::<MouseButtonInput>();
-
-            // Create window to be clicked
-            let window_id = app.world_mut().spawn(Window::default()).id();
-
-            // Send mouse click event
-            app.world_mut().send_event(MouseButtonInput {
-                button: MouseButton::Left,
-                state: ButtonState::Pressed,
-                window: window_id,
-            });
+            app.init_resource::<ButtonInput<MouseButton>>();
 
             // Add Clickable entity that is also Hovered
             let entity_id = app.world_mut().spawn((Clickable, Hovered)).id();
 
             // Add second Clickable entity that is also Hovered
             let second_entity_id = app.world_mut().spawn((Clickable, Hovered)).id();
+
+            app.world_mut()
+                .resource_mut::<ButtonInput<MouseButton>>()
+                .press(MouseButton::Left);
 
             // Add our system
             app.add_systems(Update, is_clicked);
@@ -147,7 +134,7 @@ mod tests {
             let entity = app.world().get_entity(entity_id);
             let second_entity = app.world().get_entity(second_entity_id);
 
-            assert!(entity.is_some());
+            assert!(entity.is_ok());
             assert!(entity.unwrap().contains::<Clicked>());
             assert!(second_entity.unwrap().contains::<Clicked>());
         }
@@ -159,20 +146,14 @@ mod tests {
             let mut app = App::new();
 
             // Add mouse click event listener
-            app.add_event::<MouseButtonInput>();
-
-            // Create window to be clicked
-            let window_id = app.world_mut().spawn(Window::default()).id();
-
-            // Send mouse click event
-            app.world_mut().send_event(MouseButtonInput {
-                button: MouseButton::Left,
-                state: ButtonState::Pressed,
-                window: window_id,
-            });
+            app.init_resource::<ButtonInput<MouseButton>>();
 
             // Add Clickable entity that is also Hovered
             let entity_id = app.world_mut().spawn((Clickable, Hovered)).id();
+
+            app.world_mut()
+                .resource_mut::<ButtonInput<MouseButton>>()
+                .press(MouseButton::Left);
 
             // Add our system
             app.add_systems(Update, is_clicked);
@@ -183,7 +164,7 @@ mod tests {
             // retrieve entity after update
             let entity = app.world().get_entity(entity_id);
 
-            assert!(entity.is_some());
+            assert!(entity.is_ok());
             assert!(entity.unwrap().contains::<Clicked>());
         }
 
@@ -194,7 +175,7 @@ mod tests {
             let mut app = App::new();
 
             // Add mouse click event listener
-            app.add_event::<MouseButtonInput>();
+            app.init_resource::<ButtonInput<MouseButton>>();
 
             // Add Clickable entity that is also Hovered
             let entity_id = app.world_mut().spawn((Clickable, Hovered)).id();
@@ -208,7 +189,7 @@ mod tests {
             // retrieve entity after update
             let entity = app.world().get_entity(entity_id);
 
-            assert!(entity.is_some());
+            assert!(entity.is_ok());
             assert!(!entity.unwrap().contains::<Clicked>());
         }
 
@@ -219,20 +200,14 @@ mod tests {
             let mut app = App::new();
 
             // Add mouse click event listener
-            app.add_event::<MouseButtonInput>();
-
-            // Create window to be clicked
-            let window_id = app.world_mut().spawn(Window::default()).id();
-
-            // Send mouse click event
-            app.world_mut().send_event(MouseButtonInput {
-                button: MouseButton::Left,
-                state: ButtonState::Pressed,
-                window: window_id,
-            });
+            app.init_resource::<ButtonInput<MouseButton>>();
 
             // Add Clickable entity that is not Hovered
             let entity_id = app.world_mut().spawn(Clickable).id();
+
+            app.world_mut()
+                .resource_mut::<ButtonInput<MouseButton>>()
+                .press(MouseButton::Left);
 
             // Add our system
             app.add_systems(Update, is_clicked);
@@ -243,7 +218,7 @@ mod tests {
             // retrieve entity after update
             let entity = app.world().get_entity(entity_id);
 
-            assert!(entity.is_some());
+            assert!(entity.is_ok());
             assert!(!entity.unwrap().contains::<Clicked>());
         }
 
@@ -254,7 +229,7 @@ mod tests {
             let mut app = App::new();
 
             // Add mouse click event listener
-            app.add_event::<MouseButtonInput>();
+            app.init_resource::<ButtonInput<MouseButton>>();
 
             // Add Clickable entity that is not Hovered
             let entity_id = app.world_mut().spawn(Clickable).id();
@@ -268,7 +243,7 @@ mod tests {
             // retrieve entity after update
             let entity = app.world().get_entity(entity_id);
 
-            assert!(entity.is_some());
+            assert!(entity.is_ok());
             assert!(!entity.unwrap().contains::<Clicked>());
         }
     }
@@ -283,7 +258,8 @@ mod tests {
             let mut app = App::new();
 
             // Add mouse click event listener
-            app.add_event::<MouseButtonInput>();
+            app.add_event::<MouseButtonInput>()
+                .init_resource::<ButtonInput<MouseButton>>();
 
             // Create window to be clicked
             let window_id = app.world_mut().spawn(Window::default()).id();
@@ -313,7 +289,7 @@ mod tests {
             // retrieve second entity after update
             let second_entity = app.world().get_entity(second_entity_id);
 
-            assert!(entity.is_some());
+            assert!(entity.is_ok());
             assert!(!entity.unwrap().contains::<Clicked>());
             assert!(!second_entity.unwrap().contains::<Clicked>());
         }
@@ -325,7 +301,8 @@ mod tests {
             let mut app = App::new();
 
             // Add mouse click event listener
-            app.add_event::<MouseButtonInput>();
+            app.add_event::<MouseButtonInput>()
+                .init_resource::<ButtonInput<MouseButton>>();
 
             // Create window to be clicked
             let window_id = app.world_mut().spawn(Window::default()).id();
@@ -349,7 +326,7 @@ mod tests {
             // retrieve entity after update
             let entity = app.world().get_entity(entity_id);
 
-            assert!(entity.is_some());
+            assert!(entity.is_ok());
             assert!(!entity.unwrap().contains::<Clicked>());
         }
 
@@ -360,7 +337,8 @@ mod tests {
             let mut app = App::new();
 
             // Add mouse click event listener
-            app.add_event::<MouseButtonInput>();
+            app.add_event::<MouseButtonInput>()
+                .init_resource::<ButtonInput<MouseButton>>();
 
             // Add Clicked entity
             let entity_id = app.world_mut().spawn(Clicked).id();
@@ -374,7 +352,7 @@ mod tests {
             // retrieve entity after update
             let entity = app.world().get_entity(entity_id);
 
-            assert!(entity.is_some());
+            assert!(entity.is_ok());
             assert!(entity.unwrap().contains::<Clicked>());
         }
 
@@ -385,7 +363,8 @@ mod tests {
             let mut app = App::new();
 
             // Add mouse click event listener
-            app.add_event::<MouseButtonInput>();
+            app.add_event::<MouseButtonInput>()
+                .init_resource::<ButtonInput<MouseButton>>();
 
             // Create window to be clicked
             let window_id = app.world_mut().spawn(Window::default()).id();
@@ -409,7 +388,7 @@ mod tests {
             // retrieve entity after update
             let entity = app.world().get_entity(entity_id);
 
-            assert!(entity.is_some());
+            assert!(entity.is_ok());
             assert!(!entity.unwrap().contains::<Clicked>());
         }
 
@@ -420,7 +399,8 @@ mod tests {
             let mut app = App::new();
 
             // Add mouse click event listener
-            app.add_event::<MouseButtonInput>();
+            app.add_event::<MouseButtonInput>()
+                .init_resource::<ButtonInput<MouseButton>>();
 
             // Add entity
             let entity_id = app.world_mut().spawn(Clickable).id();
@@ -434,7 +414,7 @@ mod tests {
             // retrieve entity after update
             let entity = app.world().get_entity(entity_id);
 
-            assert!(entity.is_some());
+            assert!(entity.is_ok());
             assert!(!entity.unwrap().contains::<Clicked>());
         }
     }

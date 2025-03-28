@@ -38,16 +38,14 @@ fn spawn_deck(mut commands: Commands, image_handles: Res<HandleMap<ImageKey>>) {
     // Spawn an UI node containing text to show how many cards are left
     commands
         .spawn((
-            NodeBundle {
-                background_color: BackgroundColor(css::DARK_GRAY.into()),
-                border_color: BorderColor(Color::BLACK),
-                visibility: Visibility::Hidden,
-                ..default()
-            },
+            Node::default(),
+            BackgroundColor(css::DARK_GRAY.into()),
+            BorderColor(Color::BLACK),
+            Visibility::Hidden,
             NodeDeckMarker,
         ))
         .with_children(|builder| {
-            builder.spawn((TextBundle::default(), TextDeckMarker));
+            builder.spawn((Text::default(), TextDeckMarker));
         });
 
     let texture_handle = image_handles
@@ -59,10 +57,7 @@ fn spawn_deck(mut commands: Commands, image_handles: Res<HandleMap<ImageKey>>) {
     // Spawn the game deck including it's sprite
     commands
         .spawn((
-            SpriteBundle {
-                texture: texture_handle.clone_weak(),
-                ..default()
-            },
+            Sprite::from_image(texture_handle.clone_weak()),
             UtilsBundle::default(),
             FixedPosition::DECK,
             FixedScale::CARD,
@@ -78,11 +73,8 @@ fn spawn_deck(mut commands: Commands, image_handles: Res<HandleMap<ImageKey>>) {
                     .spawn((
                         card,
                         InDeck,
-                        SpriteBundle {
-                            visibility: Visibility::Hidden,
-                            texture: texture_handle.clone_weak(),
-                            ..default()
-                        },
+                        Sprite::from_image(texture_handle.clone_weak()),
+                        Visibility::Hidden,
                         FixedScale::CARD,
                         UtilsBundle::default(),
                     ))
@@ -100,14 +92,8 @@ fn spawn_graveyard(mut commands: Commands, image_handles: Res<HandleMap<ImageKey
 
     // Spawn the game graveyard including it's sprite
     commands.spawn((
-        SpriteBundle {
-            texture: texture_handle.clone(),
-            transform: Transform {
-                translation: Vec3::new(0., 0., -1.),
-                ..default()
-            },
-            ..default()
-        },
+        Sprite::from_image(texture_handle.clone_weak()),
+        Transform::from_translation(Vec3::new(0., 0., -1.)),
         UtilsBundle::default(),
         FixedPosition::GRAVEYARD,
         FixedScale::CARD,
@@ -120,7 +106,8 @@ fn spawn_hand(mut commands: Commands) {
         FixedPosition::HAND,
         Hand::default(),
         PlayerHand,
-        SpatialBundle::default(),
+        Transform::default(),
+        Visibility::default(),
     ));
 }
 

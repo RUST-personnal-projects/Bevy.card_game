@@ -36,11 +36,12 @@ fn update_coordinates(
     for _ in mouse_event.read() {
         let (camera, camera_transform) = camera_query.single();
 
-        if let Some(coordinates) = camera
+        match camera
             .viewport_to_world_2d(camera_transform, ui_mouse_coordinates.0)
             .map(|coordinates| coordinates.trunc())
         {
-            mouse_coordinates.0 = coordinates;
+            Ok(coordinates) => mouse_coordinates.0 = coordinates,
+            Err(error) => panic!("Couldn't retrieve mouse coordinates: {:?}", error),
         }
     }
 }
@@ -78,16 +79,16 @@ mod debug {
         let node = debug_node_query.single();
 
         let mouse_coordinates = commands
-            .spawn((TextBundle::default(), MouseCoordinatesMarker))
+            .spawn((Text::default(), MouseCoordinatesMarker))
             .id();
 
         let ui_mouse_coordinates = commands
-            .spawn((TextBundle::default(), UIMouseCoordinatesMarker))
+            .spawn((Text::default(), UIMouseCoordinatesMarker))
             .id();
 
         commands
             .entity(node)
-            .push_children(&[mouse_coordinates, ui_mouse_coordinates]);
+            .add_children(&[mouse_coordinates, ui_mouse_coordinates]);
     }
 
     pub(super) fn update_debug_mouse_coordinates(
@@ -96,13 +97,10 @@ mod debug {
     ) {
         let mut mouse_coordinates_text = text_query.single_mut();
 
-        *mouse_coordinates_text = Text::from_section(
-            format!(
-                "Mouse: \nx: {}\ny: {}",
-                mouse_coordinates.0.x, mouse_coordinates.0.y
-            ),
-            TextStyle::default(),
-        );
+        *mouse_coordinates_text = Text::new(format!(
+            "Mouse: \nx: {}\ny: {}",
+            mouse_coordinates.0.x, mouse_coordinates.0.y
+        ));
     }
 
     pub(super) fn update_debug_ui_mouse_coordinates(
@@ -111,12 +109,9 @@ mod debug {
     ) {
         let mut ui_mouse_coordinates_text = text_query.single_mut();
 
-        *ui_mouse_coordinates_text = Text::from_section(
-            format!(
-                "UI mouse: \nx: {}\ny: {}",
-                ui_mouse_coordinates.0.x, ui_mouse_coordinates.0.y
-            ),
-            TextStyle::default(),
-        );
+        *ui_mouse_coordinates_text = Text::new(format!(
+            "UI mouse: \nx: {}\ny: {}",
+            ui_mouse_coordinates.0.x, ui_mouse_coordinates.0.y
+        ));
     }
 }

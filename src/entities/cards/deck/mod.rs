@@ -45,23 +45,23 @@ fn is_deck_hovered(deck_hovered_query: Query<(), (With<DeckMarker>, With<Hovered
     deck_hovered_query.get_single().is_ok()
 }
 
-/// Make the node showing how many cards left in deck and update it's style position, update text inside node
+/// Make the node showing how many cards left in deck and update it's position, update text inside node
 fn show_deck_data(
-    mut node_query: Query<(&mut Visibility, &mut Style), With<NodeDeckMarker>>,
+    mut node_query: Query<(&mut Visibility, &mut Node), With<NodeDeckMarker>>,
     mut text_query: Query<&mut Text, With<TextDeckMarker>>,
     ui_mouse_coordinates: Res<UIMouseCoordinates>,
     deck_query: Query<&Deck, With<DeckMarker>>,
 ) {
-    let (mut visibility, mut style) = node_query.single_mut();
+    let (mut visibility, mut node) = node_query.single_mut();
     let mut text = text_query.single_mut();
 
     let len = deck_query.single().len();
 
     let UIMouseCoordinates(Vec2 { x, y }) = ui_mouse_coordinates.into_inner();
-    style.left = Val::Px(*x + DEFAULT_OFFSET);
-    style.top = Val::Px(*y);
+    node.left = Val::Px(*x + DEFAULT_OFFSET);
+    node.top = Val::Px(*y);
 
-    *text = Text::from_section(format!("cards remaining: {}", len), TextStyle::default());
+    *text = Text::new(format!("cards remaining: {}", len));
     *visibility = Visibility::Visible;
 }
 
@@ -125,7 +125,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn set_visibility_style_and_text() {
+        fn set_node_visibility_and_text() {
             let mut app = App::new();
 
             app.add_systems(Update, show_deck_data)
@@ -133,36 +133,25 @@ mod tests {
 
             let node = app
                 .world_mut()
-                .spawn((
-                    NodeBundle {
-                        visibility: Visibility::Hidden,
-                        ..default()
-                    },
-                    NodeDeckMarker,
-                ))
+                .spawn((Node::default(), Visibility::Hidden, NodeDeckMarker))
                 .id();
             let text = app
                 .world_mut()
-                .spawn((TextBundle::default(), TextDeckMarker))
+                .spawn((Text::default(), TextDeckMarker))
                 .id();
             app.world_mut().spawn((Deck(VecDeque::new()), DeckMarker));
             app.world_mut().entity_mut(node).add_child(text);
 
             app.update();
 
-            let text = app
-                .world()
-                .entity(text)
-                .get::<Text>()
-                .and_then(|text| text.sections.first().map(|section| section.value.clone()))
-                .unwrap();
+            let text = app.world().entity(text).get::<Text>().unwrap();
             let visibility = app.world().entity(node).get::<Visibility>().unwrap();
-            let style = app.world().entity(node).get::<Style>().unwrap();
+            let node = app.world().entity(node).get::<Node>().unwrap();
 
             assert_eq!(visibility, Visibility::Visible);
-            assert_eq!(text, "cards remaining: 0".to_string());
+            assert_eq!(**text, "cards remaining: 0".to_string());
             assert_eq!(
-                (style.top, style.left),
+                (node.top, node.left),
                 (Val::Px(0.), Val::Px(DEFAULT_OFFSET))
             );
         }
@@ -179,13 +168,7 @@ mod tests {
 
             let node = app
                 .world_mut()
-                .spawn((
-                    NodeBundle {
-                        visibility: Visibility::Visible,
-                        ..default()
-                    },
-                    NodeDeckMarker,
-                ))
+                .spawn((Node::default(), NodeDeckMarker))
                 .id();
 
             app.update();

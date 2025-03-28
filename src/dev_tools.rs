@@ -77,19 +77,16 @@ fn switch_to_dev_mode(
 fn setup_debug(mut commands: Commands) {
     commands
         .spawn((
-            NodeBundle {
-                background_color: BackgroundColor(color::palettes::css::DARK_GRAY.into()),
-                border_color: BorderColor(Color::BLACK),
-                style: Style {
-                    flex_direction: FlexDirection::Column,
-                    ..default()
-                },
+            BackgroundColor(color::palettes::css::DARK_GRAY.into()),
+            BorderColor(Color::BLACK),
+            Node {
+                flex_direction: FlexDirection::Column,
                 ..default()
             },
             DebugNodeMarker,
         ))
         .with_children(|builder| {
-            builder.spawn((TextBundle::from("DevState On"),));
+            builder.spawn((Text::new("DevState On"),));
         });
 }
 
@@ -111,9 +108,9 @@ fn setup_window_debug_view(
 ) {
     let node = debug_node_query.single();
 
-    let window = commands.spawn((TextBundle::default(), UIWindowMarker)).id();
+    let window = commands.spawn((Text::default(), UIWindowMarker)).id();
 
-    commands.entity(node).push_children(&[window]);
+    commands.entity(node).add_children(&[window]);
 }
 
 fn update_debug_ui_mouse_coordinates(
@@ -123,8 +120,8 @@ fn update_debug_ui_mouse_coordinates(
     let window_size = window_query.single().size();
     let mut ui_window_text = ui_window_query.single_mut();
 
-    *ui_window_text = Text::from_section(
-        format!("Window size: \nx: {}\ny: {}", window_size.x, window_size.y),
-        TextStyle::default(),
-    );
+    *ui_window_text = Text::new(format!(
+        "Window size: \nx: {}\ny: {}",
+        window_size.x, window_size.y
+    ));
 }

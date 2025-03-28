@@ -45,48 +45,53 @@ impl FixedScale {
 }
 
 fn init_fixed_scales(
-    mut query: Query<(&mut Transform, &Handle<Image>, &FixedScale), Added<FixedScale>>,
+    mut query: Query<(&mut Transform, &Sprite, &FixedScale), Added<FixedScale>>,
     images: Res<Assets<Image>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
-    for (mut transform, image_handle, fixed_scale) in query.iter_mut() {
-        if let Some(image) = images.get(image_handle) {
-            let window_size = window_query.single().resolution.size();
-            let image_size = image.size_f32();
-
-            transform.scale = fixed_scale
-                .updated_scale(window_size.x, window_size.y, image_size)
-                .extend(1.);
-        } else {
-            warn!(
-                "Assets server returned None for {:?}, unable to scale entity.",
-                image_handle
-            );
-        }
+    for (mut transform, sprite, fixed_scale) in query.iter_mut() {
+        let window_size = window_query.single().resolution.size();
+        set_scale(&mut transform, window_size, fixed_scale, sprite, &images);
     }
 }
 
 /// Query all entities that have both [`Transform`] and [`Handle<Image>`] and update their scale to match the new window size
 fn update_fixed_scales_on_window_resize(
-    mut query: Query<(&mut Transform, &Handle<Image>, &FixedScale)>,
+    mut query: Query<(&mut Transform, &Sprite, &FixedScale)>,
     images: Res<Assets<Image>>,
     mut events: EventReader<WindowResized>,
 ) {
-    for WindowResized { height, width, .. } in events.read() {
-        for (mut transform, image_handle, fixed_scale) in query.iter_mut() {
-            if let Some(image) = images.get(image_handle) {
-                let image_size = image.size_f32();
-
-                transform.scale = fixed_scale
-                    .updated_scale(*width, *height, image_size)
-                    .extend(1.);
-            } else {
-                warn!(
-                    "Assets server returned None for {:?}, unable to scale entity.",
-                    image_handle
-                );
-            }
+    for &WindowResized { height, width, .. } in events.read() {
+        for (mut transform, sprite, fixed_scale) in query.iter_mut() {
+            set_scale(
+                &mut transform,
+                Vec2::new(height, width),
+                fixed_scale,
+                sprite,
+                &images,
+            );
         }
+    }
+}
+
+fn set_scale(
+    transform: &mut Mut<Transform>,
+    window_size: Vec2,
+    fixed_scale: &FixedScale,
+    sprite: &Sprite,
+    images: &Res<Assets<Image>>,
+) {
+    if let Some(image) = images.get(sprite.image.id()) {
+        let image_size = image.size_f32();
+
+        transform.scale = fixed_scale
+            .updated_scale(window_size.x, window_size.y, image_size)
+            .extend(1.);
+    } else {
+        warn!(
+            "Assets server returned None for {:?}, unable to scale entity.",
+            sprite.image
+        );
     }
 }
 

@@ -14,7 +14,7 @@ pub(super) fn plugin(app: &mut App) {
 
     app.add_systems(
         Update,
-        go_to_playing_screen.run_if(in_state(Screen::Loading).and_then(all_assets_loaded)),
+        go_to_playing_screen.run_if(in_state(Screen::Loading).and(all_assets_loaded)),
     );
 }
 

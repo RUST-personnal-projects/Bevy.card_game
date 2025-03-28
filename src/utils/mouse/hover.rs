@@ -31,11 +31,10 @@ fn gizmo(
         let width = scaled_size.width() + 2.;
         let height = scaled_size.height() + 2.;
 
-        let (_, rotation, translation) = transform.to_scale_rotation_translation();
+        let (_, _, translation) = transform.to_scale_rotation_translation();
 
         gizmos.rect_2d(
-            translation.truncate(),
-            rotation.z,
+            Isometry2d::from_translation(translation.truncate()),
             Vec2::new(width, height),
             css::GREEN,
         );
@@ -78,7 +77,7 @@ fn entity_info(world: &mut World) {
         .collect::<Vec<_>>();
 
     for entity in entities {
-        if let Some(entity_ref) = world.get_entity(entity) {
+        if let Ok(entity_ref) = world.get_entity(entity) {
             let components = entity_components(entity_ref, world);
             let mut components_logs = Vec::new();
             let mut components_names = Vec::new();
@@ -128,12 +127,12 @@ fn component_reflected_value<'a>(
     component_id: ComponentId,
     component_type_id: Option<TypeId>,
 ) -> Option<&'a mut dyn Reflect> {
-    let value = entity_ref.get_by_id(component_id)?;
+    let value = entity_ref.get_by_id(component_id).ok()?;
     let type_id = component_type_id?;
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
     let registration = type_registry.get(type_id)?;
-    let reflect_from_ptr = registration.data::<ReflectFromPtr>().unwrap();
+    let reflect_from_ptr = registration.data::<ReflectFromPtr>()?;
 
     let ptr: PtrMut<'a> = unsafe { PtrMut::new(std::ptr::NonNull::new(value.as_ptr())?) };
     // As stated in as_reflect_mut we need to ensure that the Ptr can be converted to something reflected by checking that they would have same [`TypeId`]
@@ -145,58 +144,58 @@ fn component_reflected_value<'a>(
 
 /// Recursively retrieves any type of [`Reflect`] down to [`bevy::reflect::ReflectMut::Value`]
 #[cfg(feature = "dev")]
-fn log_reflect(value: &mut dyn Reflect) -> String {
-    match value.reflect_mut() {
-        bevy::reflect::ReflectMut::Struct(value) => {
+fn log_reflect(value: &dyn PartialReflect) -> String {
+    match value.reflect_ref() {
+        bevy::reflect::ReflectRef::Struct(value) => {
             let mut fields = Vec::new();
             for i in 0..value.field_len() {
-                let field = log_reflect(value.field_at_mut(i).unwrap());
+                let field = log_reflect(value.field_at(i).unwrap());
                 let name = value.name_at(i).unwrap();
                 fields.push(format!("{}: {}", name, field,));
             }
             fields.join(", ")
         }
-        bevy::reflect::ReflectMut::TupleStruct(value) => {
+        bevy::reflect::ReflectRef::TupleStruct(value) => {
             let mut fields = Vec::new();
             for i in 0..value.field_len() {
-                fields.push(log_reflect(value.field_mut(i).unwrap()));
+                fields.push(log_reflect(value.field(i).unwrap()));
             }
             format!("({})", fields.join(", "))
         }
-        bevy::reflect::ReflectMut::Tuple(value) => {
+        bevy::reflect::ReflectRef::Tuple(value) => {
             let mut fields = Vec::new();
             for i in 0..value.field_len() {
-                fields.push(log_reflect(value.field_mut(i).unwrap()));
+                fields.push(log_reflect(value.field(i).unwrap()));
             }
             format!("({})", fields.join(", "))
         }
-        bevy::reflect::ReflectMut::List(value) => {
+        bevy::reflect::ReflectRef::List(value) => {
             let mut fields = Vec::new();
             for i in 0..value.len() {
-                fields.push(log_reflect(value.get_mut(i).unwrap()));
+                fields.push(log_reflect(value.get(i).unwrap()));
             }
             format!("[{}]", fields.join(", "))
         }
-        bevy::reflect::ReflectMut::Array(value) => {
+        bevy::reflect::ReflectRef::Array(value) => {
             let mut fields = Vec::new();
             for i in 0..value.len() {
-                fields.push(log_reflect(value.get_mut(i).unwrap()));
+                fields.push(log_reflect(value.get(i).unwrap()));
             }
             format!("[{}]", fields.join(", "))
         }
-        bevy::reflect::ReflectMut::Map(value) => {
+        bevy::reflect::ReflectRef::Map(value) => {
             let mut fields = Vec::new();
             for i in 0..value.len() {
-                let (key, value) = value.get_at_mut(i).unwrap();
+                let (key, value) = value.get_at(i).unwrap();
                 fields.push(format!("{:?}: {}", key, log_reflect(value)));
             }
             format!("[{}]", fields.join(", "))
         }
-        bevy::reflect::ReflectMut::Enum(value) => match value.variant_type() {
+        bevy::reflect::ReflectRef::Enum(value) => match value.variant_type() {
             bevy::reflect::VariantType::Struct => {
                 let mut fields = Vec::new();
                 for i in 0..value.field_len() {
-                    let field = log_reflect(value.field_at_mut(i).unwrap());
+                    let field = log_reflect(value.field_at(i).unwrap());
                     let name = value.name_at(i).unwrap();
                     fields.push(format!("{}: {}", name, field));
                 }
@@ -205,13 +204,20 @@ fn log_reflect(value: &mut dyn Reflect) -> String {
             bevy::reflect::VariantType::Tuple => {
                 let mut fields = Vec::new();
                 for i in 0..value.field_len() {
-                    fields.push(log_reflect(value.field_at_mut(i).unwrap()));
+                    fields.push(log_reflect(value.field_at(i).unwrap()));
                 }
                 format!("({})", fields.join(", "))
             }
             bevy::reflect::VariantType::Unit => value.variant_name().to_string(),
         },
-        bevy::reflect::ReflectMut::Value(value) => format!("{:?}", value),
+        bevy::reflect::ReflectRef::Set(value) => {
+            let mut fields = Vec::new();
+            for field in value.iter() {
+                fields.push(log_reflect(field));
+            }
+            format!("[{}]", fields.join(", "))
+        }
+        bevy::reflect::ReflectRef::Opaque(value) => format!("{:?}", value),
     }
 }
 
@@ -222,7 +228,7 @@ mod tests {
 
     mod is_hovered {
         use super::*;
-        use test::asset_loading::{check_loaded, is_asset_loaded, TestAssetLoadingState};
+        use test::asset_loading::{are_all_images_loaded, is_image_loaded, TestAssetLoadingState};
 
         use crate::{
             entities::cards::CARD_BACK_PATH,
@@ -251,9 +257,9 @@ mod tests {
                 .world_mut()
                 .spawn((
                     Hoverable,
-                    image,
+                    Sprite::from_image(image),
                     ScaledSize::default(),
-                    TransformBundle::from_transform(Transform::from_xyz(0., 0., 0.)),
+                    Transform::from_xyz(0., 0., 0.),
                 ))
                 .id();
 
@@ -261,8 +267,8 @@ mod tests {
             app.add_systems(
                 Update,
                 (
-                    is_asset_loaded::<Image>,
-                    check_loaded::<Image>,
+                    are_all_images_loaded,
+                    is_image_loaded,
                     is_hovered.run_if(in_state(TestAssetLoadingState::Loaded)),
                 )
                     .chain(),
@@ -278,7 +284,7 @@ mod tests {
             // retrieve entity after update
             let entity = app.world().get_entity(entity_id);
 
-            assert!(entity.is_some());
+            assert!(entity.is_ok());
             assert!(entity.unwrap().contains::<Hovered>());
         }
 
@@ -304,9 +310,9 @@ mod tests {
                 .world_mut()
                 .spawn((
                     Hoverable,
-                    image,
+                    Sprite::from_image(image),
                     ScaledSize::default(),
-                    TransformBundle::from_transform(Transform::from_xyz(0., 0., 0.)),
+                    Transform::from_xyz(0., 0., 0.),
                 ))
                 .id();
 
@@ -314,8 +320,8 @@ mod tests {
             app.add_systems(
                 Update,
                 (
-                    is_asset_loaded::<Image>,
-                    check_loaded::<Image>,
+                    are_all_images_loaded,
+                    is_image_loaded,
                     is_hovered.run_if(in_state(TestAssetLoadingState::Loaded)),
                 )
                     .chain(),
@@ -331,7 +337,7 @@ mod tests {
             // retrieve entity after update
             let entity = app.world().get_entity(entity_id);
 
-            assert!(entity.is_some());
+            assert!(entity.is_ok());
             assert!(!entity.unwrap().contains::<Hovered>());
         }
 
@@ -356,9 +362,9 @@ mod tests {
             let entity_id = app
                 .world_mut()
                 .spawn((
-                    image,
+                    Sprite::from_image(image),
                     ScaledSize::default(),
-                    TransformBundle::from_transform(Transform::from_xyz(0., 0., 0.)),
+                    Transform::from_xyz(0., 0., 0.),
                 ))
                 .id();
 
@@ -366,8 +372,8 @@ mod tests {
             app.add_systems(
                 Update,
                 (
-                    is_asset_loaded::<Image>,
-                    check_loaded::<Image>,
+                    are_all_images_loaded,
+                    is_image_loaded,
                     is_hovered.run_if(in_state(TestAssetLoadingState::Loaded)),
                 )
                     .chain(),
@@ -383,7 +389,7 @@ mod tests {
             // retrieve entity after update
             let entity = app.world().get_entity(entity_id);
 
-            assert!(entity.is_some());
+            assert!(entity.is_ok());
             assert!(!entity.unwrap().contains::<Hovered>());
         }
 
@@ -408,9 +414,9 @@ mod tests {
             let entity_id = app
                 .world_mut()
                 .spawn((
-                    image,
+                    Sprite::from_image(image.clone_weak()),
                     ScaledSize::default(),
-                    TransformBundle::from_transform(Transform::from_xyz(0., 0., 0.)),
+                    Transform::from_xyz(0., 0., 0.),
                 ))
                 .id();
 
@@ -418,8 +424,8 @@ mod tests {
             app.add_systems(
                 Update,
                 (
-                    is_asset_loaded::<Image>,
-                    check_loaded::<Image>,
+                    are_all_images_loaded,
+                    is_image_loaded,
                     is_hovered.run_if(in_state(TestAssetLoadingState::Loaded)),
                 )
                     .chain(),
@@ -435,7 +441,7 @@ mod tests {
             // retrieve entity after update
             let entity = app.world().get_entity(entity_id);
 
-            assert!(entity.is_some());
+            assert!(entity.is_ok());
             assert!(!entity.unwrap().contains::<Hovered>());
         }
     }

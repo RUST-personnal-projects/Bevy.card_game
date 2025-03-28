@@ -44,9 +44,9 @@ mod debug {
     ) {
         let node = debug_node_query.single();
 
-        let turn = commands.spawn((TextBundle::default(), TurnMarker)).id();
+        let turn = commands.spawn((Text::default(), TurnMarker)).id();
 
-        commands.entity(node).push_children(&[turn]);
+        commands.entity(node).add_children(&[turn]);
     }
 
     pub(super) fn update_current_turn(
@@ -54,6 +54,6 @@ mod debug {
         mut text_query: Query<&mut Text, With<TurnMarker>>,
     ) {
         let mut turn_text = text_query.single_mut();
-        *turn_text = Text::from_section(format!("Turn: {:?}", turn.get()), TextStyle::default());
+        *turn_text = Text::new(format!("Turn: {:?}", turn.get()));
     }
 }
