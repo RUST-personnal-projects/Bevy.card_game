@@ -224,225 +224,204 @@ fn log_reflect(value: &dyn PartialReflect) -> String {
 #[cfg(test)] // This attribute ensures this module is only compiled when running tests
 mod tests {
     use super::*;
-    use crate::utils::test;
 
     mod is_hovered {
         use super::*;
-        use test::asset_loading::{are_all_images_loaded, is_image_loaded, TestAssetLoadingState};
+        use bevy::state::app::StatesPlugin;
+        use bevy_asset_loader::prelude::*;
 
-        use crate::{
-            entities::cards::CARD_BACK_PATH,
-            utils::{image_scaling, mouse::coordinates::MouseCoordinates},
-        };
+        use crate::utils::{image_scaling, mouse::coordinates::MouseCoordinates};
+
+        #[derive(States, Debug, Hash, PartialEq, Eq, Clone, Default)]
+        pub enum TestStates {
+            #[default]
+            Loading,
+            Loaded,
+        }
+
+        #[derive(AssetCollection, Resource)]
+        pub struct TestImageAssets {
+            // Special cards:
+            #[asset(path = "images/cards/card_back.png")]
+            pub card_back: Handle<Image>,
+        }
+
+        fn timeout(time: Res<Time>) {
+            if time.elapsed_secs_f64() > 10. {
+                panic!("The asset loader did not change the state in 10 seconds");
+            }
+        }
+
+        struct TestPlugin(Vec2);
+
+        impl Plugin for TestPlugin {
+            fn build(&self, app: &mut App) {
+                app.add_plugins((
+                    MinimalPlugins,
+                    AssetPlugin::default(),
+                    ImagePlugin::default(),
+                    StatesPlugin,
+                    image_scaling::plugin,
+                ));
+                app.init_state::<TestStates>();
+
+                app.add_loading_state(
+                    LoadingState::new(TestStates::Loading)
+                        .continue_to_state(TestStates::Loaded)
+                        .load_collection::<TestImageAssets>(),
+                );
+
+                app.insert_resource(MouseCoordinates(self.0));
+
+                app.add_systems(Update, timeout.run_if(in_state(TestStates::Loading)));
+            }
+        }
 
         #[test]
-        // Hoverable [V] Hovering [V]
         fn hoverable_hovering() {
-            // Setup app
             let mut app = App::new();
-            app.add_plugins((MinimalPlugins, test::plugin, image_scaling::plugin))
-                .init_resource::<MouseCoordinates>();
 
-            // Add mouse coordinates Resource
-            let mut coordinates = app.world_mut().resource_mut::<MouseCoordinates>();
-            coordinates.0 = Vec2::new(0., 0.);
+            app.add_plugins(TestPlugin(Vec2::new(0., 0.)));
 
-            // Access the asset server and start loading Image
-            let asset_server = app.world_mut().resource_mut::<AssetServer>();
-
-            let image: Handle<Image> = asset_server.load(CARD_BACK_PATH);
-
-            // Add Hoverable entity that is Hovered
-            let entity_id = app
-                .world_mut()
-                .spawn((
-                    Hoverable,
-                    Sprite::from_image(image),
-                    ScaledSize::default(),
-                    Transform::from_xyz(0., 0., 0.),
-                ))
-                .id();
-
-            // Add two systems: one is a test system that checks asset is loaded, second is checking if Image asset is hovered
             app.add_systems(
-                Update,
+                OnEnter(TestStates::Loaded),
                 (
-                    are_all_images_loaded,
-                    is_image_loaded,
-                    is_hovered.run_if(in_state(TestAssetLoadingState::Loaded)),
+                    |images: Res<TestImageAssets>, mut commands: Commands| {
+                        commands.spawn((
+                            Hoverable,
+                            Sprite::from_image(images.card_back.clone_weak()),
+                            ScaledSize::default(),
+                            Transform::from_xyz(0., 0., 0.),
+                        ));
+                    },
+                    is_hovered,
+                    |entity_query: Query<(), With<Hovered>>, mut exit: EventWriter<AppExit>| {
+                        assert!(entity_query.get_single().is_ok());
+                        exit.send(AppExit::Success);
+                    },
                 )
                     .chain(),
             );
 
-            // update the game until asset is loaded then check if hovered
-            while *app.world().resource::<State<TestAssetLoadingState>>().get()
-                == TestAssetLoadingState::Loading
-            {
-                app.update();
-            }
-
-            // retrieve entity after update
-            let entity = app.world().get_entity(entity_id);
-
-            assert!(entity.is_ok());
-            assert!(entity.unwrap().contains::<Hovered>());
+            app.run();
         }
 
         #[test]
-        // Hoverable [V] Hovering [X]
+        fn hoverable_hovering_two() {
+            let mut app = App::new();
+
+            app.add_plugins(TestPlugin(Vec2::new(0., 0.)));
+
+            app.add_systems(
+                OnEnter(TestStates::Loaded),
+                (
+                    |images: Res<TestImageAssets>, mut commands: Commands| {
+                        commands.spawn((
+                            Hoverable,
+                            Sprite::from_image(images.card_back.clone_weak()),
+                            ScaledSize::default(),
+                            Transform::from_xyz(0., 0., 0.),
+                        ));
+                        commands.spawn((
+                            Hoverable,
+                            Sprite::from_image(images.card_back.clone_weak()),
+                            ScaledSize::default(),
+                            Transform::from_xyz(0., 0., 0.),
+                        ));
+                    },
+                    is_hovered,
+                    |entity_query: Query<(), With<Hovered>>, mut exit: EventWriter<AppExit>| {
+                        assert!(entity_query.iter().len() == 2);
+                        exit.send(AppExit::Success);
+                    },
+                )
+                    .chain(),
+            );
+
+            app.run();
+        }
+
+        #[test]
         fn hoverable_not_hovering() {
-            // Setup app
             let mut app = App::new();
-            app.add_plugins((MinimalPlugins, test::plugin, image_scaling::plugin))
-                .init_resource::<MouseCoordinates>();
 
-            // Add mouse coordinates Resource
-            let mut coordinates = app.world_mut().resource_mut::<MouseCoordinates>();
-            coordinates.0 = Vec2::new(200., 0.);
+            app.add_plugins(TestPlugin(Vec2::new(2000., 0.)));
 
-            // Access the asset server and start loading Image
-            let asset_server = app.world_mut().resource_mut::<AssetServer>();
-
-            let image: Handle<Image> = asset_server.load(CARD_BACK_PATH);
-
-            // Add Hoverable entity that is Hovered
-            let entity_id = app
-                .world_mut()
-                .spawn((
-                    Hoverable,
-                    Sprite::from_image(image),
-                    ScaledSize::default(),
-                    Transform::from_xyz(0., 0., 0.),
-                ))
-                .id();
-
-            // Add two systems: one is a test system that checks asset is loaded, second is checking if Image asset is hovered
             app.add_systems(
-                Update,
+                OnEnter(TestStates::Loaded),
                 (
-                    are_all_images_loaded,
-                    is_image_loaded,
-                    is_hovered.run_if(in_state(TestAssetLoadingState::Loaded)),
+                    |images: Res<TestImageAssets>, mut commands: Commands| {
+                        commands.spawn((
+                            Hoverable,
+                            Sprite::from_image(images.card_back.clone_weak()),
+                            ScaledSize::default(),
+                            Transform::from_xyz(0., 0., 0.),
+                        ));
+                    },
+                    is_hovered,
+                    |entity_query: Query<(), With<Hovered>>, mut exit: EventWriter<AppExit>| {
+                        assert!(entity_query.is_empty());
+                        exit.send(AppExit::Success);
+                    },
                 )
                     .chain(),
             );
 
-            // update the game until asset is loaded then check if hovered
-            while *app.world().resource::<State<TestAssetLoadingState>>().get()
-                == TestAssetLoadingState::Loading
-            {
-                app.update();
-            }
-
-            // retrieve entity after update
-            let entity = app.world().get_entity(entity_id);
-
-            assert!(entity.is_ok());
-            assert!(!entity.unwrap().contains::<Hovered>());
+            app.run();
         }
 
         #[test]
-        // Hoverable [X] Hovering [V]
         fn not_hoverable_hovering() {
-            // Setup app
             let mut app = App::new();
-            app.add_plugins((MinimalPlugins, test::plugin, image_scaling::plugin))
-                .init_resource::<MouseCoordinates>();
 
-            // Add mouse coordinates Resource
-            let mut coordinates = app.world_mut().resource_mut::<MouseCoordinates>();
-            coordinates.0 = Vec2::new(0., 0.);
+            app.add_plugins(TestPlugin(Vec2::new(0., 0.)));
 
-            // Access the asset server and start loading Image
-            let asset_server = app.world_mut().resource_mut::<AssetServer>();
-
-            let image: Handle<Image> = asset_server.load(CARD_BACK_PATH);
-
-            // Add Hoverable entity that is Hovered
-            let entity_id = app
-                .world_mut()
-                .spawn((
-                    Sprite::from_image(image),
-                    ScaledSize::default(),
-                    Transform::from_xyz(0., 0., 0.),
-                ))
-                .id();
-
-            // Add two systems: one is a test system that checks asset is loaded, second is checking if Image asset is hovered
             app.add_systems(
-                Update,
+                OnEnter(TestStates::Loaded),
                 (
-                    are_all_images_loaded,
-                    is_image_loaded,
-                    is_hovered.run_if(in_state(TestAssetLoadingState::Loaded)),
+                    |images: Res<TestImageAssets>, mut commands: Commands| {
+                        commands.spawn((
+                            Sprite::from_image(images.card_back.clone_weak()),
+                            ScaledSize::default(),
+                            Transform::from_xyz(0., 0., 0.),
+                        ));
+                    },
+                    is_hovered,
+                    |entity_query: Query<(), With<Hovered>>, mut exit: EventWriter<AppExit>| {
+                        assert!(entity_query.is_empty());
+                        exit.send(AppExit::Success);
+                    },
                 )
                     .chain(),
             );
-
-            // update the game until asset is loaded then check if hovered
-            while *app.world().resource::<State<TestAssetLoadingState>>().get()
-                == TestAssetLoadingState::Loading
-            {
-                app.update();
-            }
-
-            // retrieve entity after update
-            let entity = app.world().get_entity(entity_id);
-
-            assert!(entity.is_ok());
-            assert!(!entity.unwrap().contains::<Hovered>());
         }
 
         #[test]
-        // Hoverable [X] Hovering [X]
         fn not_hoverable_not_hovering() {
-            // Setup app
             let mut app = App::new();
-            app.add_plugins((MinimalPlugins, test::plugin, image_scaling::plugin))
-                .init_resource::<MouseCoordinates>();
 
-            // Add mouse coordinates Resource
-            let mut coordinates = app.world_mut().resource_mut::<MouseCoordinates>();
-            coordinates.0 = Vec2::new(200., 0.);
+            app.add_plugins(TestPlugin(Vec2::new(2000., 0.)));
 
-            // Access the asset server and start loading Image
-            let asset_server = app.world_mut().resource_mut::<AssetServer>();
-
-            let image: Handle<Image> = asset_server.load(CARD_BACK_PATH);
-
-            // Add Hoverable entity that is Hovered
-            let entity_id = app
-                .world_mut()
-                .spawn((
-                    Sprite::from_image(image.clone_weak()),
-                    ScaledSize::default(),
-                    Transform::from_xyz(0., 0., 0.),
-                ))
-                .id();
-
-            // Add two systems: one is a test system that checks asset is loaded, second is checking if Image asset is hovered
             app.add_systems(
-                Update,
+                OnEnter(TestStates::Loaded),
                 (
-                    are_all_images_loaded,
-                    is_image_loaded,
-                    is_hovered.run_if(in_state(TestAssetLoadingState::Loaded)),
+                    |images: Res<TestImageAssets>, mut commands: Commands| {
+                        commands.spawn((
+                            Sprite::from_image(images.card_back.clone_weak()),
+                            ScaledSize::default(),
+                            Transform::from_xyz(0., 0., 0.),
+                        ));
+                    },
+                    is_hovered,
+                    |entity_query: Query<(), With<Hovered>>, mut exit: EventWriter<AppExit>| {
+                        assert!(entity_query.is_empty());
+                        exit.send(AppExit::Success);
+                    },
                 )
                     .chain(),
             );
 
-            // update the game until asset is loaded then check if hovered
-            while *app.world().resource::<State<TestAssetLoadingState>>().get()
-                == TestAssetLoadingState::Loading
-            {
-                app.update();
-            }
-
-            // retrieve entity after update
-            let entity = app.world().get_entity(entity_id);
-
-            assert!(entity.is_ok());
-            assert!(!entity.unwrap().contains::<Hovered>());
+            app.run();
         }
     }
 }

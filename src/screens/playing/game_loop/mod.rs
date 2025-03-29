@@ -21,3 +21,5 @@ pub(super) fn plugin(app: &mut App) {
 fn end_turn(mut turn_next_state: ResMut<NextState<CurrentTurnState>>) {
     turn_next_state.set(CurrentTurnState::Start);
 }
+
+// fn pass_turn() {}

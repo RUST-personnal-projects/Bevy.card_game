@@ -12,7 +12,7 @@ use crate::{
     },
     screens::Screen,
     utils::{
-        assets::{images::ImageKey, HandleMap},
+        assets::CardImageAssets,
         // ui::prelude::*,
         UtilsBundle,
     },
@@ -34,7 +34,7 @@ pub(super) fn plugin(app: &mut App) {
     .insert_state(CurrentPlayerState::LocalPlayer);
 }
 
-fn spawn_deck(mut commands: Commands, image_handles: Res<HandleMap<ImageKey>>) {
+fn spawn_deck(mut commands: Commands, card_assets: Res<CardImageAssets>) {
     // Spawn an UI node containing text to show how many cards are left
     commands
         .spawn((
@@ -48,16 +48,12 @@ fn spawn_deck(mut commands: Commands, image_handles: Res<HandleMap<ImageKey>>) {
             builder.spawn((Text::default(), TextDeckMarker));
         });
 
-    let texture_handle = image_handles
-        .get(&ImageKey::CardBack)
-        .expect("Cardback should be set");
-
     let mut deck = Deck::default();
 
     // Spawn the game deck including it's sprite
     commands
         .spawn((
-            Sprite::from_image(texture_handle.clone_weak()),
+            Sprite::from_image(card_assets.card_back.clone_weak()),
             UtilsBundle::default(),
             FixedPosition::DECK,
             FixedScale::CARD,
@@ -66,14 +62,11 @@ fn spawn_deck(mut commands: Commands, image_handles: Res<HandleMap<ImageKey>>) {
         .with_children(|parent| {
             let cards = DeckGenerator::default().generate_deck();
             cards.iter().for_each(|&card| {
-                let texture_handle = image_handles
-                    .get(&ImageKey::Card(card))
-                    .unwrap_or_else(|| panic!("{:?} should be set", card));
                 let card_entity = parent
                     .spawn((
                         card,
                         InDeck,
-                        Sprite::from_image(texture_handle.clone_weak()),
+                        Sprite::from_image(card.map_to_asset_handle(&card_assets)),
                         Visibility::Hidden,
                         FixedScale::CARD,
                         UtilsBundle::default(),
@@ -85,14 +78,10 @@ fn spawn_deck(mut commands: Commands, image_handles: Res<HandleMap<ImageKey>>) {
         .insert(deck);
 }
 
-fn spawn_graveyard(mut commands: Commands, image_handles: Res<HandleMap<ImageKey>>) {
-    let texture_handle = image_handles
-        .get(&ImageKey::CardBack)
-        .expect("Cardback should be set");
-
+fn spawn_graveyard(mut commands: Commands, card_assets: Res<CardImageAssets>) {
     // Spawn the game graveyard including it's sprite
     commands.spawn((
-        Sprite::from_image(texture_handle.clone_weak()),
+        Sprite::from_image(card_assets.card_back.clone_weak()),
         Transform::from_translation(Vec3::new(0., 0., -1.)),
         UtilsBundle::default(),
         FixedPosition::GRAVEYARD,

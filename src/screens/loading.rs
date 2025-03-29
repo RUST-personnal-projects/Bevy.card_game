@@ -1,21 +1,19 @@
 //! The screen state for loading game assets.
 
 use bevy::prelude::*;
+use bevy_asset_loader::prelude::*;
 
-use crate::utils::{
-    assets::{images::ImageKey, HandleMap},
-    ui::prelude::*,
-};
+use crate::utils::{assets::CardImageAssets, ui::prelude::*};
 
 use super::Screen;
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(OnEnter(Screen::Loading), enter_loading);
-
-    app.add_systems(
-        Update,
-        go_to_playing_screen.run_if(in_state(Screen::Loading).and(all_assets_loaded)),
-    );
+    app.add_systems(OnEnter(Screen::Loading), enter_loading)
+        .add_loading_state(
+            LoadingState::new(Screen::Loading)
+                .continue_to_state(Screen::Playing)
+                .load_collection::<CardImageAssets>(),
+        );
 }
 
 fn enter_loading(mut commands: Commands) {
@@ -25,15 +23,4 @@ fn enter_loading(mut commands: Commands) {
         .with_children(|children| {
             children.label("Loading...");
         });
-}
-
-fn all_assets_loaded(
-    asset_server: Res<AssetServer>,
-    image_handles: Res<HandleMap<ImageKey>>,
-) -> bool {
-    image_handles.all_loaded(&asset_server)
-}
-
-fn go_to_playing_screen(mut next_screen: ResMut<NextState<Screen>>) {
-    next_screen.set(Screen::Playing);
 }
